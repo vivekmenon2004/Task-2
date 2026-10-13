@@ -1,0 +1,180 @@
+/* Vcart Base Styles - Apple India Store-inspired clean minimalist design */
+:root {
+  --color-bg: #000000;
+  --color-surface: #121212;
+  --color-surface-hover: #1c1c1e;
+  --color-text: #f5f5f7;
+  --color-text-secondary: #86868b;
+  --color-text-tertiary: #6e6e73;
+  --color-accent: #2997ff;
+  --color-accent-hover: #0077ed;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --header-bg: rgba(0, 0, 0, 0.8);
+  --header-blur: saturate(180%) blur(20px);
+  --font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --transition-smooth: all 0.28s cubic-bezier(0.25, 0.1, 0.25, 1);
+  --max-width: 1200px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.47059;
+  font-weight: 400;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header & Navigation */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background-color: var(--header-bg);
+  backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur);
+  border-bottom: 1px solid var(--color-border-subtle);
+  height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-container {
+  max-width: var(--max-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-brand {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+  letter-spacing: -0.015em;
+  transition: opacity var(--transition-smooth);
+}
+
+.nav-brand:hover {
+  opacity: 0.8;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  transition: color var(--transition-smooth);
+}
+
+.nav-link:hover {
+  color: var(--color-text);
+}
+
+/* Messages & Alerts */
+.messages-container {
+  max-width: var(--max-width);
+  margin: 16px auto 0;
+  padding: 0 24px;
+  width: 100%;
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border);
+}
+
+.alert-success {
+  background-color: rgba(48, 209, 88, 0.15);
+  border-color: rgba(48, 209, 88, 0.3);
+  color: #30d158;
+}
+
+.alert-error {
+  background-color: rgba(255, 69, 58, 0.15);
+  border-color: rgba(255, 69, 58, 0.3);
+  color: #ff453a;
+}
+
+/* Main Content Wrapper */
+.content-wrapper {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-placeholder {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.hero-placeholder h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.07;
+  margin-bottom: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-placeholder p {
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  max-width: 600px;
+}
+
+/* Footer */
+.site-footer {
+  background-color: #0c0c0e;
+  border-top: 1px solid var(--color-border-subtle);
+  padding: 24px 0;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.footer-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

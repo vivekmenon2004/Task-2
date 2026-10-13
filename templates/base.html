@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vcart — Crafted for Perfection{% endblock %}</title>
+    <!-- Google Fonts for Apple-inspired typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-primary text-primary antialiased">
+    <!-- Global Navigation -->
+    <header class="site-header">
+        <nav class="nav-container">
+            <a href="/" class="nav-brand">
+                <span class="brand-text">Vcart</span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Store</a>
+                <a href="/products/" class="nav-link">Explore</a>
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="/dashboard/" class="nav-link">Dashboard</a>
+                    {% endif %}
+                    <a href="/accounts/logout/" class="nav-link">Sign Out</a>
+                {% else %}
+                    <a href="/accounts/login/" class="nav-link">Sign In</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <!-- Notification Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main id="main-content" class="content-wrapper">
+        {% block content %}
+        <div class="hero-placeholder">
+            <h1>Welcome to Vcart</h1>
+            <p>The new standard of digital elegance.</p>
+        </div>
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <p class="footer-copy">&copy; 2026 Vcart India. All rights reserved. Original technical assignment demo.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
