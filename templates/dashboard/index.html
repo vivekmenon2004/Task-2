@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — Vcart{% endblock %}
+{% block content %}
+<div class="site-container dashboard-page">
+    <div class="dashboard-header">
+        <span class="dashboard-eyebrow">Store Intelligence</span>
+        <h1 class="dashboard-title">Store Dashboard</h1>
+        <p class="dashboard-subtitle">Real-time overview of products, categories, and homepage banners.</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="dashboard-stats-grid">
+        <div class="stat-card">
+            <span class="stat-number">{{ total_products }}</span>
+            <span class="stat-label">Total Products</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ active_products }}</span>
+            <span class="stat-label">Active in Store</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ total_categories }}</span>
+            <span class="stat-label">Categories</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ total_banners }}</span>
+            <span class="stat-label">Hero Banners</span>
+        </div>
+    </div>
+
+    <div class="dashboard-actions-panel">
+        <a href="/admin/store/product/add/" class="btn-apple-primary">+ Add New Product</a>
+        <a href="/admin/banners/banner/add/" class="btn-apple-ghost">+ Add New Banner</a>
+        <a href="/admin/store/category/add/" class="btn-apple-ghost">+ Add New Category</a>
+        <a href="/admin/" class="btn-apple-ghost">Django Admin &rarr;</a>
+    </div>
+</div>
+{% endblock %}

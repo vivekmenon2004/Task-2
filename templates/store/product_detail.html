@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} — Vcart{% endblock %}
+{% block meta_description %}{{ product.description|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<div class="product-detail-page">
+    <div class="site-container">
+        <!-- Breadcrumb Navigation -->
+        <nav class="detail-breadcrumb" aria-label="Breadcrumb">
+            <a href="{% url 'store:home' %}">Store</a>
+            <span class="sep">/</span>
+            <a href="{% url 'store:product_list' %}">All Products</a>
+            <span class="sep">/</span>
+            <a href="{% url 'store:category_products' product.category.slug %}" class="breadcrumb-cat">
+                {{ product.category.name }}
+            </a>
+            <span class="sep">/</span>
+            <span class="current">{{ product.name }}</span>
+        </nav>
+
+        <!-- Main Product Showcase Grid -->
+        <div class="detail-grid">
+            <!-- Left: Product Showcase Gallery -->
+            <div class="detail-gallery">
+                <div class="gallery-showcase">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="detail-main-img" id="detailMainImg">
+                    {% else %}
+                    <div class="product-fallback-img detail-fallback">
+                        <span class="fallback-tag">Vcart Engineering Showcase</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right: Product Information & Specifications -->
+            <div class="detail-info">
+                <div class="detail-header">
+                    <a href="{% url 'store:category_products' product.category.slug %}" class="detail-category-tag">
+                        {{ product.category.name }}
+                    </a>
+                    <h1 class="detail-title">{{ product.name }}</h1>
+                </div>
+
+                <!-- Key Information / Specs Section -->
+                {% if product.key_specs %}
+                <div class="specs-highlight-box">
+                    <div class="specs-label">Key Specifications</div>
+                    <div class="specs-content">{{ product.key_specs }}</div>
+                </div>
+                {% endif %}
+
+                <!-- Pricing Box -->
+                <div class="detail-price-box">
+                    <span class="price-label">Price</span>
+                    <span class="price-amount">&#8377;{{ product.price|floatformat:2 }}</span>
+                    <span class="tax-note">MRP incl. of all taxes. Free insured shipping across India.</span>
+                </div>
+
+                <!-- Description Section -->
+                <div class="detail-description">
+                    <h2 class="section-subheading">Product Overview</h2>
+                    <div class="description-body">
+                        {{ product.description|linebreaks }}
+                    </div>
+                </div>
+
+                <!-- Apple-style Value Props -->
+                <div class="detail-highlights">
+                    <div class="highlight-item">
+                        <svg class="highlight-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="3" width="15" height="13"></rect>
+                            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                        </svg>
+                        <div>
+                            <strong>Free Delivery</strong>
+                            <span>Complimentary insured shipping on all orders in India.</span>
+                        </div>
+                    </div>
+                    <div class="highlight-item">
+                        <svg class="highlight-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        <div>
+                            <strong>1-Year Warranty</strong>
+                            <span>Official coverage with premium repair and technical support.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="detail-cta">
+                    <a href="{% url 'store:category_products' product.category.slug %}" class="btn-apple-primary btn-full">
+                        Explore More in {{ product.category.name }}
+                    </a>
+                    <a href="{% url 'store:product_list' %}" class="btn-apple-ghost btn-center">
+                        &larr; Back to All Products
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. RELATED PRODUCTS ROW -->
+        {% if related_products %}
+        <section class="related-section" aria-label="Related Products">
+            <div class="section-header">
+                <div class="section-eyebrow">Explore More</div>
+                <h2 class="section-title">Related {{ product.category.name }}. <span class="text-muted">You might also be interested in.</span></h2>
+            </div>
+
+            <div class="products-grid">
+                {% for rel in related_products %}
+                <div class="product-card">
+                    <div class="product-card-header">
+                        <a href="{% url 'store:category_products' rel.category.slug %}" class="product-category-tag">
+                            {{ rel.category.name }}
+                        </a>
+                        <h3 class="product-title">
+                            <a href="{% url 'store:product_detail' rel.slug %}">{{ rel.name }}</a>
+                        </h3>
+                        {% if rel.key_specs %}
+                        <p class="product-specs">{{ rel.key_specs }}</p>
+                        {% endif %}
+                    </div>
+
+                    <a href="{% url 'store:product_detail' rel.slug %}" class="product-image-wrap" aria-label="View {{ rel.name }}">
+                        {% if rel.image %}
+                        <img src="{{ rel.image.url }}" alt="{{ rel.name }}" class="product-img" loading="lazy">
+                        {% else %}
+                        <div class="product-fallback-img">
+                            <span class="fallback-tag">Vcart Device</span>
+                        </div>
+                        {% endif %}
+                    </a>
+
+                    <div class="product-card-footer">
+                        <div class="product-pricing">
+                            <span class="price-from">From</span>
+                            <span class="price-val">&#8377;{{ rel.price|floatformat:2 }}</span>
+                        </div>
+                        <div class="product-actions">
+                            <a href="{% url 'store:product_detail' rel.slug %}" class="btn-pill-buy">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{% if selected_category %}{{ selected_category.name }} — Vcart{% elif search_query %}Search: "{{ search_query }}" — Vcart{% else %}All Products — Vcart Store{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="product-catalog-page">
+    <div class="site-container">
+        <!-- Catalog Header -->
+        <div class="catalog-header">
+            <span class="catalog-eyebrow">
+                {% if selected_category %}Category Showcase{% elif search_query %}Search Results{% else %}Store Collection{% endif %}
+            </span>
+            <h1 class="catalog-title">
+                {% if selected_category %}
+                    {{ selected_category.name }}
+                {% elif search_query %}
+                    Results for "{{ search_query }}"
+                {% else %}
+                    All Products
+                {% endif %}
+            </h1>
+            <p class="catalog-subtitle">
+                {% if selected_category and selected_category.description %}
+                    {{ selected_category.description }}
+                {% elif search_query %}
+                    Showing {{ total_count }} product{{ total_count|pluralize }} matching your query.
+                {% else %}
+                    Explore our complete family of precision engineering, intuitive software, and unmatched industrial design.
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="catalog-controls">
+            <!-- Search Form -->
+            <form method="get" action="{% url 'store:product_list' %}" class="catalog-search-form" role="search">
+                {% if selected_category %}
+                <input type="hidden" name="category" value="{{ selected_category.slug }}">
+                {% endif %}
+                <div class="search-input-wrap">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Search products by name..." class="search-input" aria-label="Search products">
+                    {% if search_query %}
+                    <a href="{% if selected_category %}{% url 'store:category_products' selected_category.slug %}{% else %}{% url 'store:product_list' %}{% endif %}" class="search-clear" title="Clear search">&times;</a>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn-apple-primary btn-search">Search</button>
+            </form>
+
+            <!-- Category Filter Chips -->
+            <div class="filter-tabs-wrapper">
+                <div class="filter-tabs">
+                    <a href="{% url 'store:product_list' %}{% if search_query %}?q={{ search_query }}{% endif %}" 
+                       class="filter-chip {% if not selected_category %}active{% endif %}">
+                        All
+                    </a>
+                    {% for cat in categories %}
+                    <a href="{% url 'store:category_products' cat.slug %}{% if search_query %}?q={{ search_query }}{% endif %}" 
+                       class="filter-chip {% if selected_category.slug == cat.slug %}active{% endif %}">
+                        {{ cat.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        {% if products %}
+        <div class="products-grid catalog-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-card-header">
+                    <a href="{% url 'store:category_products' product.category.slug %}" class="product-category-tag" title="Browse {{ product.category.name }}">
+                        {{ product.category.name }}
+                    </a>
+                    <h2 class="product-title">
+                        <a href="{% url 'store:product_detail' product.slug %}">{{ product.name }}</a>
+                    </h2>
+                    {% if product.key_specs %}
+                    <p class="product-specs">{{ product.key_specs }}</p>
+                    {% endif %}
+                </div>
+
+                <a href="{% url 'store:product_detail' product.slug %}" class="product-image-wrap" aria-label="View {{ product.name }}">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img" loading="lazy">
+                    {% else %}
+                    <div class="product-fallback-img">
+                        <span class="fallback-tag">Vcart Engineering</span>
+                    </div>
+                    {% endif %}
+                </a>
+
+                <div class="product-card-footer">
+                    <div class="product-pricing">
+                        <span class="price-from">From</span>
+                        <span class="price-val">&#8377;{{ product.price|floatformat:2 }}</span>
+                    </div>
+                    <div class="product-actions">
+                        <a href="{% url 'store:product_detail' product.slug %}" class="btn-pill-buy">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Bar -->
+        {% if page_obj.has_other_pages %}
+        <nav class="pagination-nav" aria-label="Product list pagination">
+            <div class="pagination-wrap">
+                {% if page_obj.has_previous %}
+                <a href="?{% if base_query_string %}{{ base_query_string }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+                   class="page-link page-prev" aria-label="Previous page">
+                    &larr; Previous
+                </a>
+                {% else %}
+                <span class="page-link page-disabled">&larr; Previous</span>
+                {% endif %}
+
+                <div class="page-numbers">
+                    {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="page-link page-active" aria-current="page">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?{% if base_query_string %}{{ base_query_string }}&{% endif %}page={{ num }}" 
+                               class="page-link">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if page_obj.has_next %}
+                <a href="?{% if base_query_string %}{{ base_query_string }}&{% endif %}page={{ page_obj.next_page_number }}" 
+                   class="page-link page-next" aria-label="Next page">
+                    Next &rarr;
+                </a>
+                {% else %}
+                <span class="page-link page-disabled">Next &rarr;</span>
+                {% endif %}
+            </div>
+            <div class="pagination-info">
+                Page {{ page_obj.number }} of {{ paginator.num_pages }} ({{ total_count }} total products)
+            </div>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <!-- Empty Results State -->
+        <div class="empty-state-card catalog-empty">
+            <div class="empty-icon-ring">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+            <h2 class="empty-title">No matching products found</h2>
+            <p class="empty-subtitle">
+                {% if search_query %}
+                    We couldn't find any products matching "<strong>{{ search_query }}</strong>". Try checking your spelling or searching for a different keyword.
+                {% else %}
+                    There are currently no active products in this category.
+                {% endif %}
+            </p>
+            <div class="empty-actions">
+                <a href="{% url 'store:product_list' %}" class="btn-apple-primary">View All Products</a>
+                <a href="{% url 'store:home' %}" class="btn-apple-ghost">Back to Home &rarr;</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

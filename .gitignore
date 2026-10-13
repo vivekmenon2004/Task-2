@@ -45,7 +45,7 @@ media/
 .DS_Store
 Thumbs.db
 
-# Agent skills & configs
+# Agent skills
 .agent/
 .agents/
 

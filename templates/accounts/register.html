@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Create Account — Vcart{% endblock %}
+{% block content %}
+<div class="site-container auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="auth-eyebrow">Join Vcart</span>
+            <h1 class="auth-title">Create your Vcart ID.</h1>
+            <p class="auth-subtitle">One account for all your device previews and preferences.</p>
+        </div>
+        <form method="post" class="apple-form">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <span class="form-error">{{ field.errors.0 }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn-apple-primary btn-full">Create Account</button>
+        </form>
+        <div class="auth-footer">
+            <p>Already have an account? <a href="{% url 'accounts:login' %}" class="auth-link">Sign in &rarr;</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
