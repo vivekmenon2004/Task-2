@@ -1,0 +1,152 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block dash_title %}Manage Products{% endblock %}
+
+{% block dashboard_content %}
+<div class="dash-page-header">
+    <div class="dash-header-left">
+        <div class="dash-eyebrow-row">
+            <a href="{% url 'dashboard:home' %}" class="dash-back-link">&larr; Dashboard Overview</a>
+            <span class="dash-count-pill">{{ filtered_count }} / {{ total_count }} products</span>
+        </div>
+        <h1 class="dash-title">Product Catalog</h1>
+        <p class="dash-subtitle">View, search, create, update, and manage products visible in your online store.</p>
+    </div>
+    <div class="dash-header-actions">
+        <a href="{% url 'dashboard:product_create' %}" class="btn-dash-primary">
+            <span>+ Add New Product</span>
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filter Controls -->
+<form method="get" class="dash-filter-bar">
+    <div class="dash-search-box">
+        <svg class="dash-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search products by title, specs, slug..." class="dash-filter-input">
+        {% if query %}
+        <a href="{% url 'dashboard:product_list' %}" class="dash-filter-clear" title="Clear search">&times;</a>
+        {% endif %}
+    </div>
+
+    <div class="dash-filter-selects">
+        <select name="category" class="dash-filter-select" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="status" class="dash-filter-select" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active Only</option>
+            <option value="disabled" {% if selected_status == 'disabled' %}selected{% endif %}>Disabled Only</option>
+            <option value="featured" {% if selected_status == 'featured' %}selected{% endif %}>Featured Only</option>
+        </select>
+
+        <button type="submit" class="btn-dash-secondary">Filter</button>
+        {% if query or selected_category or selected_status %}
+        <a href="{% url 'dashboard:product_list' %}" class="dash-filter-reset">Reset</a>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Products Table -->
+<div class="dash-table-card">
+    <div class="dash-table-wrapper">
+        {% if products %}
+        <table class="dash-table" aria-label="Products Table">
+            <thead>
+                <tr>
+                    <th scope="col">Product</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Featured</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Created Date</th>
+                    <th scope="col" style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        <div class="table-product-cell">
+                            {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="table-product-thumb" loading="lazy">
+                            {% else %}
+                            <div class="table-product-placeholder">&#128230;</div>
+                            {% endif %}
+                            <div class="table-product-meta">
+                                <a href="{% url 'dashboard:product_edit' product.pk %}" class="table-product-name" title="Edit this product">
+                                    {{ product.name }}
+                                </a>
+                                <span class="table-product-slug">/{{ product.slug }}</span>
+                                {% if product.key_specs %}
+                                <span class="table-product-specs">{{ product.key_specs|truncatechars:45 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="table-category-tag">{{ product.category.name }}</span>
+                    </td>
+                    <td>
+                        <span class="table-price-text">&#8377;{{ product.price|floatformat:2 }}</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'dashboard:product_toggle' product.pk %}?field=is_featured" class="toggle-status-link" title="Click to toggle featured status">
+                            {% if product.is_featured %}
+                            <span class="status-pill active">&#9733; Featured</span>
+                            {% else %}
+                            <span class="status-pill disabled">&#9734; Normal</span>
+                            {% endif %}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'dashboard:product_toggle' product.pk %}?field=is_active" class="toggle-status-link" title="Click to toggle active status">
+                            {% if product.is_active %}
+                            <span class="status-pill active">
+                                <span class="pill-dot green"></span>
+                                Active
+                            </span>
+                            {% else %}
+                            <span class="status-pill disabled">
+                                <span class="pill-dot muted"></span>
+                                Disabled
+                            </span>
+                            {% endif %}
+                        </a>
+                    </td>
+                    <td>
+                        <span style="color: var(--text-secondary); font-size: 12px;">{{ product.created_at|date:"M d, Y" }}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <div class="table-actions-row">
+                            <a href="{% url 'store:product_detail' product.slug %}" class="table-action-btn" target="_blank" title="View live on store">
+                                <span>View</span>
+                            </a>
+                            <a href="{% url 'dashboard:product_edit' product.pk %}" class="table-action-btn" title="Edit product">
+                                <span>Edit</span>
+                            </a>
+                            <a href="{% url 'dashboard:product_delete' product.pk %}" class="table-action-btn btn-danger-action" title="Delete product">
+                                <span>Delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="table-empty-state">
+            <div class="table-empty-icon">&#128230;</div>
+            <p>No products match your filter criteria.</p>
+            <a href="{% url 'dashboard:product_create' %}" class="btn-dash-primary">+ Add New Product</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

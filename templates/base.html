@@ -45,6 +45,12 @@
                     {{ cat.name }}
                 </a>
                 {% endfor %}
+
+                {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'dashboard:home' %}" class="nav-item {% if '/dashboard' in request.path %}active{% endif %}">
+                    Dashboard
+                </a>
+                {% endif %}
             </nav>
 
             <!-- User Auth & Action Links -->
@@ -68,7 +74,10 @@
                         </svg>
                         <span>Account</span>
                     </a>
-                    <a href="{% url 'accounts:logout' %}" class="nav-item sign-out-link">Sign Out</a>
+                    <form method="post" action="{% url 'accounts:logout' %}" class="inline-logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-item sign-out-btn" title="Sign Out">Sign Out</button>
+                    </form>
                 {% else %}
                     <a href="{% url 'accounts:login' %}" class="nav-item auth-btn-text">Login</a>
                     <a href="{% url 'accounts:register' %}" class="nav-item auth-btn-pill">Register</a>
@@ -102,7 +111,10 @@
                     <a href="{% url 'dashboard:home' %}" class="mobile-nav-link">Admin Dashboard</a>
                     {% endif %}
                     <a href="{% url 'accounts:profile' %}" class="mobile-nav-link">My Account ({{ user.username }})</a>
-                    <a href="{% url 'accounts:logout' %}" class="mobile-nav-link">Sign Out</a>
+                    <form method="post" action="{% url 'accounts:logout' %}" class="mobile-logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="mobile-nav-link mobile-logout-btn">Sign Out</button>
+                    </form>
                 {% else %}
                     <a href="{% url 'accounts:login' %}" class="mobile-nav-link">Login</a>
                     <a href="{% url 'accounts:register' %}" class="mobile-nav-link">Register</a>

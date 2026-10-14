@@ -1,0 +1,151 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block dash_title %}Manage Users & Roles{% endblock %}
+
+{% block dashboard_content %}
+<div class="dash-page-header">
+    <div class="dash-header-left">
+        <div class="dash-eyebrow-row">
+            <a href="{% url 'dashboard:home' %}" class="dash-back-link">&larr; Dashboard Overview</a>
+            <span class="dash-count-pill">{{ filtered_count }} / {{ total_count }} accounts</span>
+        </div>
+        <h1 class="dash-title">Users & Permissions</h1>
+        <p class="dash-subtitle">Provision staff credentials, manage customer accounts, and adjust permissions.</p>
+    </div>
+    <div class="dash-header-actions">
+        <a href="{% url 'dashboard:user_create' %}" class="btn-dash-primary">
+            <span>+ Add New User</span>
+        </a>
+    </div>
+</div>
+
+<!-- Search & Role Filter Bar -->
+<form method="get" class="dash-filter-bar">
+    <div class="dash-search-box">
+        <svg class="dash-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by username, email, or name..." class="dash-filter-input">
+        {% if query %}
+        <a href="{% url 'dashboard:user_list' %}" class="dash-filter-clear">&times;</a>
+        {% endif %}
+    </div>
+
+    <div class="dash-filter-selects">
+        <select name="role" class="dash-filter-select" onchange="this.form.submit()">
+            <option value="">All Roles</option>
+            <option value="staff" {% if selected_role == 'staff' %}selected{% endif %}>Staff Members Only</option>
+            <option value="customer" {% if selected_role == 'customer' %}selected{% endif %}>Customers Only</option>
+            <option value="superuser" {% if selected_role == 'superuser' %}selected{% endif %}>Superusers Only</option>
+        </select>
+        <button type="submit" class="btn-dash-secondary">Filter</button>
+        {% if query or selected_role %}
+        <a href="{% url 'dashboard:user_list' %}" class="dash-filter-reset">Reset</a>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Users Table -->
+<div class="dash-table-card">
+    <div class="dash-table-wrapper">
+        {% if users %}
+        <table class="dash-table" aria-label="Users Table">
+            <thead>
+                <tr>
+                    <th scope="col">User</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role & Privileges</th>
+                    <th scope="col">Account Status</th>
+                    <th scope="col">Date Joined</th>
+                    <th scope="col" style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div class="table-user-cell">
+                            <div class="table-user-avatar">
+                                {{ u.username|make_list|first|upper }}
+                            </div>
+                            <div class="table-user-meta">
+                                <span class="table-username">
+                                    {{ u.username }}
+                                    {% if u == request.user %}
+                                    <span style="font-size: 10px; color: var(--color-accent); font-weight: 600;">(You)</span>
+                                    {% endif %}
+                                </span>
+                                {% if u.get_full_name %}
+                                <span style="font-size: 11px; color: var(--text-muted);">{{ u.get_full_name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="table-email">{{ u.email|default:"No email set" }}</span>
+                    </td>
+                    <td>
+                        {% if u != request.user %}
+                        <a href="{% url 'dashboard:user_toggle' u.pk %}?field=is_staff" class="toggle-status-link" title="Click to toggle Staff permission">
+                            {% if u.is_superuser %}
+                            <span class="role-pill superuser">Superuser</span>
+                            {% elif u.is_staff %}
+                            <span class="role-pill staff">&#9881; Staff Admin</span>
+                            {% else %}
+                            <span class="role-pill customer">Customer</span>
+                            {% endif %}
+                        </a>
+                        {% else %}
+                        <span class="role-pill {% if u.is_superuser %}superuser{% else %}staff{% endif %}">
+                            {% if u.is_superuser %}Superuser{% else %}Staff Admin{% endif %}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u != request.user %}
+                        <a href="{% url 'dashboard:user_toggle' u.pk %}?field=is_active" class="toggle-status-link" title="Click to toggle Active status">
+                            {% if u.is_active %}
+                            <span class="status-pill active">
+                                <span class="pill-dot green"></span>
+                                Active
+                            </span>
+                            {% else %}
+                            <span class="status-pill disabled">
+                                <span class="pill-dot muted"></span>
+                                Suspended
+                            </span>
+                            {% endif %}
+                        </a>
+                        {% else %}
+                        <span class="status-pill active"><span class="pill-dot green"></span> Active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="color: var(--text-secondary); font-size: 12px;">{{ u.date_joined|date:"M d, Y" }}</span>
+                    </td>
+                    <td style="text-align: right;">
+                        <div class="table-actions-row">
+                            <a href="{% url 'dashboard:user_edit' u.pk %}" class="table-action-btn" title="Edit user">
+                                <span>Edit</span>
+                            </a>
+                            {% if u != request.user %}
+                            <a href="{% url 'dashboard:user_delete' u.pk %}" class="table-action-btn btn-danger-action" title="Delete account">
+                                <span>Delete</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="table-empty-state">
+            <div class="table-empty-icon">&#128101;</div>
+            <p>No user accounts matched your search.</p>
+            <a href="{% url 'dashboard:user_create' %}" class="btn-dash-primary">+ Create New User</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

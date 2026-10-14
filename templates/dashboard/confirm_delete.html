@@ -1,0 +1,31 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block dash_title %}Confirm Deletion — Vcart Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="dash-page-header">
+    <div class="dash-header-left">
+        <div class="dash-eyebrow-row">
+            <a href="{% url back_url %}" class="dash-back-link">&larr; Cancel and return</a>
+        </div>
+        <h1 class="dash-title">Confirm Deletion</h1>
+        <p class="dash-subtitle">Please confirm that you want to permanently delete this item.</p>
+    </div>
+</div>
+
+<div class="dash-delete-card">
+    <div class="delete-icon-wrapper">&#9888;</div>
+    <h2 class="delete-heading">Delete {{ model_name }}: "{{ object_name }}"?</h2>
+    <p class="delete-description">
+        This action cannot be undone.
+        {% if warning_text %}
+        <br><strong>Warning:</strong> {{ warning_text }}
+        {% endif %}
+    </p>
+
+    <form method="post" class="delete-actions-form">
+        {% csrf_token %}
+        <button type="submit" class="btn-dash-danger-large">Yes, Delete Permanently</button>
+        <a href="{% url back_url %}" class="btn-dash-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

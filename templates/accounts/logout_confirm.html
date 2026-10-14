@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Out — Vcart{% endblock %}
+
+{% block content %}
+<div class="site-container auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="auth-eyebrow">Vcart Account</span>
+            <h1 class="auth-title">Sign Out</h1>
+            <p class="auth-subtitle">Are you sure you want to end your current session?</p>
+        </div>
+
+        <form method="post" action="{% url 'accounts:logout' %}" class="apple-form">
+            {% csrf_token %}
+            <div class="auth-actions-group">
+                <button type="submit" class="btn-apple-primary btn-full">Confirm Sign Out</button>
+                <a href="{% url 'store:home' %}" class="btn-apple-ghost btn-center">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

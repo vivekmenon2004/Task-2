@@ -1,0 +1,80 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block dash_title %}{{ title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="dash-page-header">
+    <div class="dash-header-left">
+        <div class="dash-eyebrow-row">
+            <a href="{% url back_url %}" class="dash-back-link">&larr; Back to list</a>
+        </div>
+        <h1 class="dash-title">{{ title }}</h1>
+        <p class="dash-subtitle">{{ subtitle }}</p>
+    </div>
+    {% if instance and delete_url %}
+    <div class="dash-header-actions">
+        <a href="{% url delete_url instance.pk %}" class="btn-dash-danger" title="Delete this entry">
+            <span>Delete Entry</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="dash-form-card">
+    {% if instance and instance.image %}
+    <div class="dash-current-image-preview">
+        <span class="preview-label">Current Image:</span>
+        <img src="{{ instance.image.url }}" alt="{{ instance }}" class="preview-img">
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="dash-apple-form" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="dash-form-alert-error">
+            {% for err in form.non_field_errors %}
+            <p>{{ err }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="dash-form-grid">
+            {% for field in form %}
+            <div class="dash-field-group {% if field.field.widget.input_type == 'checkbox' %}dash-checkbox-group{% endif %}">
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    <label class="dash-checkbox-label" for="{{ field.id_for_label }}">
+                        {{ field }}
+                        <span class="dash-checkbox-text">
+                            <strong>{{ field.label }}</strong>
+                            {% if field.help_text %}
+                            <span class="dash-help-text">{{ field.help_text }}</span>
+                            {% endif %}
+                        </span>
+                    </label>
+                {% else %}
+                    <label for="{{ field.id_for_label }}" class="dash-form-label">
+                        {{ field.label }}
+                        {% if field.field.required %}<span class="required-star">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <span class="dash-help-text">{{ field.help_text }}</span>
+                    {% endif %}
+                {% endif %}
+
+                {% if field.errors %}
+                <span class="dash-field-error">{{ field.errors.0 }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="dash-form-actions">
+            <button type="submit" class="btn-dash-primary">
+                <span>Save Changes</span>
+            </button>
+            <a href="{% url back_url %}" class="btn-dash-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

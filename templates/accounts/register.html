@@ -1,28 +1,73 @@
 {% extends "base.html" %}
-{% block title %}Create Account — Vcart{% endblock %}
+
+{% block title %}Create your Vcart ID — Vcart{% endblock %}
+
 {% block content %}
 <div class="site-container auth-page">
     <div class="auth-card">
         <div class="auth-header">
-            <span class="auth-eyebrow">Join Vcart</span>
-            <h1 class="auth-title">Create your Vcart ID.</h1>
-            <p class="auth-subtitle">One account for all your device previews and preferences.</p>
+            <span class="auth-eyebrow">Vcart ID</span>
+            <h1 class="auth-title">Create your account.</h1>
+            <p class="auth-subtitle">One Vcart ID is all you need to access all store features and devices.</p>
         </div>
-        <form method="post" class="apple-form">
+
+        <form method="post" action="{% url 'accounts:register' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="apple-form" novalidate>
             {% csrf_token %}
-            {% for field in form %}
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            {% if form.non_field_errors %}
+            <div class="form-alert-error">
+                {% for err in form.non_field_errors %}
+                <p>{{ err }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                <span class="form-error">{{ field.errors.0 }}</span>
+                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <span class="form-field-error">{{ form.username.errors.0 }}</span>
                 {% endif %}
             </div>
-            {% endfor %}
-            <button type="submit" class="btn-apple-primary btn-full">Create Account</button>
+
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                {{ form.email }}
+                {% if form.email.help_text %}
+                <span class="form-help-text">{{ form.email.help_text }}</span>
+                {% endif %}
+                {% if form.email.errors %}
+                <span class="form-field-error">{{ form.email.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                {{ form.password1 }}
+                {% if form.password1.help_text %}
+                <span class="form-help-text">{{ form.password1.help_text }}</span>
+                {% endif %}
+                {% if form.password1.errors %}
+                <span class="form-field-error">{{ form.password1.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                <span class="form-field-error">{{ form.password2.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-apple-primary btn-full">Create Vcart ID</button>
         </form>
+
         <div class="auth-footer">
-            <p>Already have an account? <a href="{% url 'accounts:login' %}" class="auth-link">Sign in &rarr;</a></p>
+            <p>Already have a Vcart ID? <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="auth-link">Sign in &rarr;</a></p>
         </div>
     </div>
 </div>
