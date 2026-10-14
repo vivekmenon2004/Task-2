@@ -77,7 +77,7 @@
         <div class="site-container">
             <div class="section-header">
                 <div class="section-eyebrow">Explore by Device</div>
-                <h2 class="section-title">Store. <span class="text-muted">The best way to buy the products you love.</span></h2>
+                <h2 class="section-title">The best way to buy the products you love.</h2>
             </div>
 
             <div class="categories-grid">
@@ -115,7 +115,7 @@
         <div class="site-container">
             <div class="section-header">
                 <div class="section-eyebrow">The Flagship Lineup</div>
-                <h2 class="section-title">The latest. <span class="text-muted">Take a look at what’s new, right now.</span></h2>
+                <h2 class="section-title">Take a look at what’s new, right now.</h2>
             </div>
 
             <div class="products-grid">
@@ -156,101 +156,6 @@
         </div>
     </section>
     {% endif %}
-
-    <!-- 4. PROMOTIONAL SECTIONS (Two Promo Blocks) -->
-    <section class="section-promo-blocks">
-        <div class="site-container">
-            <div class="promo-grid">
-                <!-- Promo Block 1 -->
-                {% if promo_banners|length >= 1 %}
-                    {% with banner=promo_banners.0 %}
-                    <div class="promo-card promo-dark">
-                        <div class="promo-content">
-                            <span class="promo-eyebrow">Innovation Highlight</span>
-                            <h3 class="promo-title">{{ banner.title }}</h3>
-                            {% if banner.subtitle %}
-                            <p class="promo-desc">{{ banner.subtitle }}</p>
-                            {% endif %}
-                            <div class="promo-action">
-                                <a href="{{ banner.button_link|default:'/products/' }}" class="btn-apple-light">
-                                    {{ banner.button_text|default:'Learn more' }} &rarr;
-                                </a>
-                            </div>
-                        </div>
-                        <div class="promo-media">
-                            {% if banner.image %}
-                            <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="promo-img" loading="lazy">
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endwith %}
-                {% else %}
-                    <!-- Dynamic Fallback Promo 1 -->
-                    <div class="promo-card promo-dark">
-                        <div class="promo-content">
-                            <span class="promo-eyebrow">Vcart Trade In</span>
-                            <h3 class="promo-title">Upgrade and save. <br>It’s that simple.</h3>
-                            <p class="promo-desc">Trade in your current device and get instant credit towards a new flagship device with flexible EMI options.</p>
-                            <div class="promo-action">
-                                <a href="{% url 'store:product_list' %}" class="btn-apple-light">
-                                    Get your estimate &rarr;
-                                </a>
-                            </div>
-                        </div>
-                        <div class="promo-graphic graphic-tradein">
-                            <div class="graphic-badge">
-                                <span>Save up to &#8377;45,000*</span>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <!-- Promo Block 2 -->
-                {% if promo_banners|length >= 2 %}
-                    {% with banner=promo_banners.1 %}
-                    <div class="promo-card promo-light">
-                        <div class="promo-content">
-                            <span class="promo-eyebrow">Crafted Engineering</span>
-                            <h3 class="promo-title">{{ banner.title }}</h3>
-                            {% if banner.subtitle %}
-                            <p class="promo-desc">{{ banner.subtitle }}</p>
-                            {% endif %}
-                            <div class="promo-action">
-                                <a href="{{ banner.button_link|default:'/products/' }}" class="btn-apple-primary">
-                                    {{ banner.button_text|default:'Learn more' }} &rarr;
-                                </a>
-                            </div>
-                        </div>
-                        <div class="promo-media">
-                            {% if banner.image %}
-                            <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="promo-img" loading="lazy">
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endwith %}
-                {% else %}
-                    <!-- Dynamic Fallback Promo 2 -->
-                    <div class="promo-card promo-light">
-                        <div class="promo-content">
-                            <span class="promo-eyebrow">Seamless Delivery</span>
-                            <h3 class="promo-title">Free scheduled delivery <br>across India.</h3>
-                            <p class="promo-desc">Enjoy complimentary insured express shipping and expert setup guidance directly out of the box.</p>
-                            <div class="promo-action">
-                                <a href="{% url 'store:product_list' %}" class="btn-apple-primary">
-                                    Explore Store &rarr;
-                                </a>
-                            </div>
-                        </div>
-                        <div class="promo-graphic graphic-delivery">
-                            <div class="graphic-chip">
-                                <span>Express 24-48h</span>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </section>
 
     <!-- 5. FRIENDLY EMPTY STATE (Shown only if no banners and no products) -->
     {% if not has_content %}

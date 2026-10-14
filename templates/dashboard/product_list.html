@@ -84,9 +84,6 @@
                                     {{ product.name }}
                                 </a>
                                 <span class="table-product-slug">/{{ product.slug }}</span>
-                                {% if product.key_specs %}
-                                <span class="table-product-specs">{{ product.key_specs|truncatechars:45 }}</span>
-                                {% endif %}
                             </div>
                         </div>
                     </td>
@@ -99,9 +96,9 @@
                     <td>
                         <a href="{% url 'dashboard:product_toggle' product.pk %}?field=is_featured" class="toggle-status-link" title="Click to toggle featured status">
                             {% if product.is_featured %}
-                            <span class="status-pill active">&#9733; Featured</span>
+                            <span class="status-pill active">Featured</span>
                             {% else %}
-                            <span class="status-pill disabled">&#9734; Normal</span>
+                            <span class="status-pill disabled">Normal</span>
                             {% endif %}
                         </a>
                     </td>
