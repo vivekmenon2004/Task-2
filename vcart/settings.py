@@ -23,7 +23,11 @@ custom_csrf = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',
 CSRF_TRUSTED_ORIGINS = [
     f"https://{h}" for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1', '*', 'testserver', '[::1]') and not h.startswith('.')
 ] + [
+    f"http://{h}" for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1', '*', 'testserver', '[::1]') and not h.startswith('.')
+] + [
     f"https://*.{h[1:]}" for h in ALLOWED_HOSTS if h.startswith('.')
+] + [
+    f"http://*.{h[1:]}" for h in ALLOWED_HOSTS if h.startswith('.')
 ] + custom_csrf
 
 # Remove any duplicate CSRF origins while preserving order
