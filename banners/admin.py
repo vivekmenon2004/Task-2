@@ -12,6 +12,18 @@ class BannerAdmin(admin.ModelAdmin):
     list_editable = ('order', 'is_active')
     readonly_fields = ('image_display', 'created_at')
     fields = ('title', 'subtitle', 'image', 'image_display', 'button_text', 'button_link', 'order', 'is_active', 'created_at')
+    actions = ['clear_images']
+
+    @admin.action(description="Remove/Delete image from selected banners")
+    def clear_images(self, request, queryset):
+        count = 0
+        for banner in queryset:
+            if banner.image:
+                banner.image.delete(save=False)
+                banner.image = None
+                banner.save()
+                count += 1
+        self.message_user(request, f"Image successfully removed from {count} banner(s).")
 
     def image_preview(self, obj):
         if obj.image:

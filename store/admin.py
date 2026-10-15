@@ -13,6 +13,18 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ('image_display', 'created_at', 'updated_at')
     fields = ('name', 'slug', 'description', 'image', 'image_display', 'is_active', 'created_at', 'updated_at')
+    actions = ['clear_images']
+
+    @admin.action(description="Remove/Delete image from selected categories")
+    def clear_images(self, request, queryset):
+        count = 0
+        for cat in queryset:
+            if cat.image:
+                cat.image.delete(save=False)
+                cat.image = None
+                cat.save()
+                count += 1
+        self.message_user(request, f"Image successfully removed from {count} category(ies).")
 
     def image_preview(self, obj):
         if obj.image:
@@ -56,6 +68,18 @@ class ProductAdmin(admin.ModelAdmin):
         'created_at',
         'updated_at',
     )
+    actions = ['clear_images']
+
+    @admin.action(description="Remove/Delete image from selected products")
+    def clear_images(self, request, queryset):
+        count = 0
+        for prod in queryset:
+            if prod.image:
+                prod.image.delete(save=False)
+                prod.image = None
+                prod.save()
+                count += 1
+        self.message_user(request, f"Image successfully removed from {count} product(s).")
 
     def image_preview(self, obj):
         if obj.image:

@@ -22,8 +22,22 @@
 <div class="dash-form-card">
     {% if instance and instance.image %}
     <div class="dash-current-image-preview">
-        <span class="preview-label">Current Image:</span>
-        <img src="{{ instance.image.url }}" alt="{{ instance }}" class="preview-img">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <img src="{{ instance.image.url }}" alt="{{ instance }}" class="preview-img">
+                <div>
+                    <span class="preview-label" style="display: block; margin-bottom: 2px;">Active Image</span>
+                    <span style="font-size: 13px; color: var(--text-secondary);">
+                        To replace, select a new file below. To remove, click the button or check the box below.
+                    </span>
+                </div>
+            </div>
+            {% if delete_image_url %}
+            <a href="{% url delete_image_url instance.pk %}" class="btn-dash-danger" style="padding: 8px 16px; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" onclick="return confirm('Remove this image now?');">
+                <span>&times; Remove Image Now</span>
+            </a>
+            {% endif %}
+        </div>
     </div>
     {% endif %}
 

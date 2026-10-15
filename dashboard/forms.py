@@ -7,9 +7,16 @@ User = get_user_model()
 
 
 class ProductForm(forms.ModelForm):
+    delete_image = forms.BooleanField(
+        required=False,
+        label="Delete / Remove current image",
+        help_text="Check this box to remove the current product image.",
+        widget=forms.CheckboxInput(attrs={'class': 'dash-form-checkbox'})
+    )
+
     class Meta:
         model = Product
-        fields = ['name', 'slug', 'category', 'price', 'image', 'key_specs', 'description', 'is_featured', 'is_active']
+        fields = ['name', 'slug', 'category', 'price', 'image', 'delete_image', 'key_specs', 'description', 'is_featured', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'dash-form-input', 'placeholder': 'e.g. MacBook Pro 16'}),
             'slug': forms.TextInput(attrs={'class': 'dash-form-input', 'placeholder': 'Leave blank to auto-generate from name'}),
@@ -28,11 +35,39 @@ class ProductForm(forms.ModelForm):
             'is_active': 'Visible to customers across the storefront.',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not (self.instance and self.instance.pk and bool(self.instance.image)):
+            self.fields.pop('delete_image', None)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('delete_image') and ('image' not in self.files):
+            cleaned_data['image'] = None
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.cleaned_data.get('delete_image') and ('image' not in self.files):
+            if instance.image:
+                instance.image.delete(save=False)
+            instance.image = None
+        if commit:
+            instance.save()
+        return instance
+
 
 class CategoryForm(forms.ModelForm):
+    delete_image = forms.BooleanField(
+        required=False,
+        label="Delete / Remove current image",
+        help_text="Check this box to remove the current category image.",
+        widget=forms.CheckboxInput(attrs={'class': 'dash-form-checkbox'})
+    )
+
     class Meta:
         model = Category
-        fields = ['name', 'slug', 'description', 'image', 'is_active']
+        fields = ['name', 'slug', 'description', 'image', 'delete_image', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'dash-form-input', 'placeholder': 'e.g. Laptops, Displays, Audio'}),
             'slug': forms.TextInput(attrs={'class': 'dash-form-input', 'placeholder': 'Leave blank to auto-generate from name'}),
@@ -46,11 +81,39 @@ class CategoryForm(forms.ModelForm):
             'is_active': 'Displays in navigation menus and category catalog.',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not (self.instance and self.instance.pk and bool(self.instance.image)):
+            self.fields.pop('delete_image', None)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('delete_image') and ('image' not in self.files):
+            cleaned_data['image'] = None
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.cleaned_data.get('delete_image') and ('image' not in self.files):
+            if instance.image:
+                instance.image.delete(save=False)
+            instance.image = None
+        if commit:
+            instance.save()
+        return instance
+
 
 class BannerForm(forms.ModelForm):
+    delete_image = forms.BooleanField(
+        required=False,
+        label="Delete / Remove current image",
+        help_text="Check this box to remove the current banner image.",
+        widget=forms.CheckboxInput(attrs={'class': 'dash-form-checkbox'})
+    )
+
     class Meta:
         model = Banner
-        fields = ['title', 'subtitle', 'image', 'button_text', 'button_link', 'order', 'is_active']
+        fields = ['title', 'subtitle', 'image', 'delete_image', 'button_text', 'button_link', 'order', 'is_active']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'dash-form-input', 'placeholder': 'e.g. MacBook Pro — Mind-blowing. Head-turning.'}),
             'subtitle': forms.Textarea(attrs={'class': 'dash-form-textarea', 'rows': 3, 'placeholder': 'Catchy promo text or tagline...'}),
@@ -65,6 +128,27 @@ class BannerForm(forms.ModelForm):
             'image': 'Optional high-resolution showcase image.',
             'is_active': 'Displays actively in the homepage hero slider.',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not (self.instance and self.instance.pk and bool(self.instance.image)):
+            self.fields.pop('delete_image', None)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('delete_image') and ('image' not in self.files):
+            cleaned_data['image'] = None
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.cleaned_data.get('delete_image') and ('image' not in self.files):
+            if instance.image:
+                instance.image.delete(save=False)
+            instance.image = None
+        if commit:
+            instance.save()
+        return instance
 
 
 class UserCreateForm(forms.ModelForm):

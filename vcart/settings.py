@@ -14,18 +14,20 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-dev-key-7f89d3a1c
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't', 'yes')
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
-if DEBUG:
-    for h in ['localhost', '127.0.0.1', '[::1]', 'testserver']:
-        if h not in ALLOWED_HOSTS:
-            ALLOWED_HOSTS.append(h)
+for default_host in ['localhost', '127.0.0.1', '[::1]', 'testserver']:
+    if default_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(default_host)
 
-
-# CSRF Trusted Origins for deployed hosts (e.g. Vercel)
+# CSRF Trusted Origins for deployed hosts
+custom_csrf = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 CSRF_TRUSTED_ORIGINS = [
-    f"https://{h}" for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1', '*') and not h.startswith('.')
+    f"https://{h}" for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1', '*', 'testserver', '[::1]') and not h.startswith('.')
 ] + [
     f"https://*.{h[1:]}" for h in ALLOWED_HOSTS if h.startswith('.')
-]
+] + custom_csrf
+
+# Remove any duplicate CSRF origins while preserving order
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 
 # Application definition
 INSTALLED_APPS = [

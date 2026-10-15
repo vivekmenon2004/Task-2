@@ -151,8 +151,21 @@ def product_edit(request, pk):
         'instance': product,
         'back_url': 'dashboard:product_list',
         'delete_url': 'dashboard:product_delete',
+        'delete_image_url': 'dashboard:product_image_delete',
         'current_tab': 'products',
     })
+
+
+@user_passes_test(is_staff_user, login_url='accounts:login')
+def product_image_delete(request, pk):
+    """Directly delete/remove the image from a product."""
+    product = get_object_or_404(Product, pk=pk)
+    if product.image:
+        product.image.delete(save=False)
+        product.image = None
+        product.save()
+        messages.success(request, f'Image for product "{product.name}" has been removed.')
+    return redirect('dashboard:product_edit', pk=product.pk)
 
 
 @user_passes_test(is_staff_user, login_url='accounts:login')
@@ -259,8 +272,21 @@ def category_edit(request, pk):
         'instance': category,
         'back_url': 'dashboard:category_list',
         'delete_url': 'dashboard:category_delete',
+        'delete_image_url': 'dashboard:category_image_delete',
         'current_tab': 'categories',
     })
+
+
+@user_passes_test(is_staff_user, login_url='accounts:login')
+def category_image_delete(request, pk):
+    """Directly delete/remove the image from a category."""
+    category = get_object_or_404(Category, pk=pk)
+    if category.image:
+        category.image.delete(save=False)
+        category.image = None
+        category.save()
+        messages.success(request, f'Image for category "{category.name}" has been removed.')
+    return redirect('dashboard:category_edit', pk=category.pk)
 
 
 @user_passes_test(is_staff_user, login_url='accounts:login')
@@ -353,8 +379,21 @@ def banner_edit(request, pk):
         'instance': banner,
         'back_url': 'dashboard:banner_list',
         'delete_url': 'dashboard:banner_delete',
+        'delete_image_url': 'dashboard:banner_image_delete',
         'current_tab': 'banners',
     })
+
+
+@user_passes_test(is_staff_user, login_url='accounts:login')
+def banner_image_delete(request, pk):
+    """Directly delete/remove the image from a banner."""
+    banner = get_object_or_404(Banner, pk=pk)
+    if banner.image:
+        banner.image.delete(save=False)
+        banner.image = None
+        banner.save()
+        messages.success(request, f'Image for banner "{banner.title}" has been removed.')
+    return redirect('dashboard:banner_edit', pk=banner.pk)
 
 
 @user_passes_test(is_staff_user, login_url='accounts:login')
