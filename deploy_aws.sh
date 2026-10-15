@@ -17,7 +17,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 APP_DIR="/var/www/vcart"
-REPO_URL="https://github.com/vivekmenon2004/Task-2.git"
+REPO_URL="https://github.com/vivekmenon2004/Vcart-Task-2.git"
 
 echo "[1/8] Updating system packages and installing dependencies..."
 export DEBIAN_FRONTEND=noninteractive
