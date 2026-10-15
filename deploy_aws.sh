@@ -147,6 +147,7 @@ python manage.py collectstatic --noinput
 
 # Run seed data to populate categories, products, banners, and default admin
 python manage.py seed_data
+python manage.py create_app_users
 
 # Determine web user and group
 if id -u nginx >/dev/null 2>&1; then
