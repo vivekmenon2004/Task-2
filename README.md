@@ -8,12 +8,9 @@ A high-performance, full-featured e-commerce platform built with **Django 5** an
 
 | Service / Interface | URL Path | Access Permission |
 | :--- | :--- | :--- |
-| **Storefront** | `https://<YOUR_APP_NAME>.onrender.com/` | Public |
-| **Operations Dashboard** | `https://<YOUR_APP_NAME>.onrender.com/dashboard/` | Staff / Admin Only |
-| **Django Admin Panel** | `https://<YOUR_APP_NAME>.onrender.com/admin/` | Staff / Superuser Only |
-
-> [!NOTE]
-> Replace `<YOUR_APP_NAME>.onrender.com` with your deployed live domain.
+| **Storefront** | [https://vcart-task.onrender.com/](https://vcart-task.onrender.com/) | Public |
+| **Operations Dashboard** | [https://vcart-task.onrender.com/dashboard/](https://vcart-task.onrender.com/dashboard/) | Staff / Admin Only |
+| **Django Admin Panel** | [https://vcart-task.onrender.com/admin/](https://vcart-task.onrender.com/admin/) | Staff / Superuser Only |
 
 ---
 
