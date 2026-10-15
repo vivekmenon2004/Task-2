@@ -1,12 +1,14 @@
 # Vcart — Modern E-Commerce Platform
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-vcart--task.onrender.com-brightgreen?style=for-the-badge&logo=render)](https://vcart-task.onrender.com/)
+[![AWS EC2](https://img.shields.io/badge/AWS%20EC2-54.79.176.152-FF9900?style=for-the-badge&logo=amazonec2)](http://54.79.176.152/)
 [![Django 5.1](https://img.shields.io/badge/Django-5.1-092E20?style=for-the-badge&logo=django)](https://www.djangoproject.com/)
-[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
 
-> **🚀 Live Website:** [https://vcart-task.onrender.com/](https://vcart-task.onrender.com/)  
-> **📊 Admin Operations Dashboard:** [https://vcart-task.onrender.com/dashboard/](https://vcart-task.onrender.com/dashboard/)  
-> **⚙️ Django Admin Panel:** [https://vcart-task.onrender.com/admin/](https://vcart-task.onrender.com/admin/)  
+> **🚀 Live Website (AWS EC2):** [http://54.79.176.152/](http://54.79.176.152/)  
+> **📊 Admin Operations Dashboard (AWS EC2):** [http://54.79.176.152/dashboard/](http://54.79.176.152/dashboard/)  
+> **⚙️ Django Admin Panel (AWS EC2):** [http://54.79.176.152/admin/](http://54.79.176.152/admin/)  
+> **🌐 Render Mirror:** [https://vcart-task.onrender.com/](https://vcart-task.onrender.com/)  
 
 A high-performance, full-featured e-commerce platform built with **Django 5** and modern **Vanilla CSS**. Vcart combines a customer-facing storefront with a dual-administration system: Django's built-in `/admin/` and a dedicated, staff-only **Store Operations Dashboard** (`/dashboard/`).
 
@@ -14,11 +16,11 @@ A high-performance, full-featured e-commerce platform built with **Django 5** an
 
 ## 🌐 Live Demo & URLs
 
-| Service / Interface | URL Path | Access Permission |
-| :--- | :--- | :--- |
-| **Storefront** | [https://vcart-task.onrender.com/](https://vcart-task.onrender.com/) | Public |
-| **Operations Dashboard** | [https://vcart-task.onrender.com/dashboard/](https://vcart-task.onrender.com/dashboard/) | Staff / Admin Only |
-| **Django Admin Panel** | [https://vcart-task.onrender.com/admin/](https://vcart-task.onrender.com/admin/) | Staff / Superuser Only |
+| Service / Interface | AWS EC2 URL | Render URL | Access Permission |
+| :--- | :--- | :--- | :--- |
+| **Storefront** | [http://54.79.176.152/](http://54.79.176.152/) | [https://vcart-task.onrender.com/](https://vcart-task.onrender.com/) | Public |
+| **Operations Dashboard** | [http://54.79.176.152/dashboard/](http://54.79.176.152/dashboard/) | [https://vcart-task.onrender.com/dashboard/](https://vcart-task.onrender.com/dashboard/) | Staff / Admin Only |
+| **Django Admin Panel** | [http://54.79.176.152/admin/](http://54.79.176.152/admin/) | [https://vcart-task.onrender.com/admin/](https://vcart-task.onrender.com/admin/) | Staff / Superuser Only |
 
 ---
 
