@@ -24,11 +24,15 @@ if command -v dnf >/dev/null 2>&1; then
     echo "  -> Detected DNF package manager (Amazon Linux 2023 / Fedora / RHEL 9)"
     dnf clean all || true
     dnf update -y
+    # Amazon Linux 2023 includes python3.11 in official repos (Django 5.1 requires Python >= 3.10)
+    dnf install -y python3.11 python3.11-pip python3.11-devel || dnf install -y python3.12 python3.12-pip python3.12-devel || true
     dnf install -y python3 python3-pip python3-devel git nginx gcc tar gzip
     dnf install -y libpq-devel || true
 elif command -v yum >/dev/null 2>&1; then
     echo "  -> Detected YUM package manager (Amazon Linux 2 / CentOS 7)"
     yum update -y
+    amazon-linux-extras install python3.8 -y 2>/dev/null || true
+    yum install -y python3.11 python3.11-devel python3.11-pip 2>/dev/null || true
     yum install -y python3 python3-pip python3-devel git nginx gcc tar gzip
     yum install -y postgresql-devel || true
 elif command -v apt-get >/dev/null 2>&1; then
@@ -71,12 +75,37 @@ else
 fi
 
 echo "[4/8] Setting up Python virtual environment..."
-if [ ! -d "$APP_DIR/venv" ]; then
-    if ! python3 -m venv "$APP_DIR/venv" 2>/dev/null; then
-        echo "  -> Creating virtualenv using pip..."
-        pip3 install virtualenv || true
-        python3 -m virtualenv "$APP_DIR/venv"
+PYTHON_BIN=""
+for py in python3.12 python3.11 python3.10 python3; do
+    if command -v "$py" >/dev/null 2>&1; then
+        PY_VER=$("$py" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || echo "0.0")
+        MAJOR=$("$py" -c 'import sys; print(sys.version_info.major)' 2>/dev/null || echo "0")
+        MINOR=$("$py" -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
+        if [ "$MAJOR" -ge 3 ] && [ "$MINOR" -ge 10 ]; then
+            PYTHON_BIN="$py"
+            echo "  -> Using Python runtime: $py (v$PY_VER)"
+            break
+        fi
     fi
+done
+
+if [ -z "$PYTHON_BIN" ]; then
+    echo "[-] Error: Python >= 3.10 is required for Django 5.1. Found: $(python3 --version 2>&1)"
+    exit 1
+fi
+
+# If existing venv was created with an older python (< 3.10), recreate it
+if [ -d "$APP_DIR/venv" ]; then
+    CURRENT_VENV_MINOR=$("$APP_DIR/venv/bin/python" -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
+    if [ "$CURRENT_VENV_MINOR" -lt 10 ]; then
+        echo "  -> Recreating venv (existing was Python 3.$CURRENT_VENV_MINOR < 3.10)..."
+        rm -rf "$APP_DIR/venv"
+    fi
+fi
+
+if [ ! -d "$APP_DIR/venv" ]; then
+    echo "  -> Creating virtual environment with $PYTHON_BIN..."
+    $PYTHON_BIN -m venv "$APP_DIR/venv"
 fi
 source "$APP_DIR/venv/bin/activate"
 pip install --upgrade pip
