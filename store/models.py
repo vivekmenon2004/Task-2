@@ -34,7 +34,7 @@ class Product(models.Model):
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     description = models.TextField(help_text="Detailed product description")
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price in INR")
-    image = models.ImageField(upload_to='products/', help_text="Primary product showcase image")
+    image = models.ImageField(upload_to='products/', blank=True, null=True, help_text="Optional product showcase image")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     is_featured = models.BooleanField(default=False, help_text="Highlight on the homepage")
     is_active = models.BooleanField(default=True, help_text="Visible in storefront")

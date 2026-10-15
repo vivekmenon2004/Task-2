@@ -23,7 +23,7 @@ class ProductForm(forms.ModelForm):
         }
         help_texts = {
             'slug': 'Unique URL identifier. If left empty, it will be automatically generated from the title.',
-            'image': 'High quality product showcase photo.',
+            'image': 'Optional product showcase photo. A clean fallback card will be displayed if omitted.',
             'is_featured': 'Display prominently in the Featured section on the home page.',
             'is_active': 'Visible to customers across the storefront.',
         }
@@ -42,6 +42,7 @@ class CategoryForm(forms.ModelForm):
         }
         help_texts = {
             'slug': 'Slug used in URLs like /category/laptops/. Auto-generated if left blank.',
+            'image': 'Optional category display image.',
             'is_active': 'Displays in navigation menus and category catalog.',
         }
 
@@ -61,6 +62,7 @@ class BannerForm(forms.ModelForm):
         }
         help_texts = {
             'order': 'Carousel slide position; lower numbers appear first.',
+            'image': 'Optional high-resolution showcase image.',
             'is_active': 'Displays actively in the homepage hero slider.',
         }
 
