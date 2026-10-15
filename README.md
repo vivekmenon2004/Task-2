@@ -17,9 +17,9 @@ A high-performance, full-featured e-commerce platform built with **Django 5** an
 ## 🔐 Credentials (Placeholders)
 
 ### Administrator Account
-- **Username:** `YOUR_ADMIN_USERNAME`
-- **Password:** `YOUR_ADMIN_PASSWORD`
-- **Email:** `YOUR_ADMIN_EMAIL`
+- **Username:** `admin`
+- **Password:** `admin123`
+- **Email:** `admin@vcart.store`
 - *Access Level:* Full Superuser & Staff privileges (accesses both `/admin/` and `/dashboard/`).
 
 ### Test Customer Account
