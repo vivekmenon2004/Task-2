@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==============================================================================
 # Vcart E-Commerce Platform — AWS EC2 Automated Deployment Script
-# Target Instance: i-09c682c4af38cc98b (or any Ubuntu 22.04 / 24.04 LTS EC2)
+# Supports: Amazon Linux 2023 / AL2, Ubuntu 20.04/22.04/24.04, Debian, RHEL
 # ==============================================================================
 
 set -e
@@ -19,10 +19,27 @@ fi
 APP_DIR="/var/www/vcart"
 REPO_URL="https://github.com/vivekmenon2004/Vcart-Task-2.git"
 
-echo "[1/8] Updating system packages and installing dependencies..."
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -y
-apt-get install -y python3 python3-pip python3-venv python3-dev build-essential libpq-dev nginx git curl ufw
+echo "[1/8] Detecting OS and installing dependencies..."
+if command -v dnf >/dev/null 2>&1; then
+    echo "  -> Detected DNF package manager (Amazon Linux 2023 / Fedora / RHEL 9)"
+    dnf clean all || true
+    dnf update -y
+    dnf install -y python3 python3-pip python3-devel git nginx gcc tar gzip
+    dnf install -y libpq-devel || true
+elif command -v yum >/dev/null 2>&1; then
+    echo "  -> Detected YUM package manager (Amazon Linux 2 / CentOS 7)"
+    yum update -y
+    yum install -y python3 python3-pip python3-devel git nginx gcc tar gzip
+    yum install -y postgresql-devel || true
+elif command -v apt-get >/dev/null 2>&1; then
+    echo "  -> Detected APT package manager (Ubuntu / Debian)"
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -y
+    apt-get install -y python3 python3-pip python3-venv python3-dev build-essential libpq-dev nginx git curl ufw
+else
+    echo "[-] Unsupported package manager. Please install Python 3, Git, and Nginx manually."
+    exit 1
+fi
 
 echo "[2/8] Fetching Public IP and DNS..."
 TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null || true)
@@ -55,7 +72,11 @@ fi
 
 echo "[4/8] Setting up Python virtual environment..."
 if [ ! -d "$APP_DIR/venv" ]; then
-    python3 -m venv "$APP_DIR/venv"
+    if ! python3 -m venv "$APP_DIR/venv" 2>/dev/null; then
+        echo "  -> Creating virtualenv using pip..."
+        pip3 install virtualenv || true
+        python3 -m virtualenv "$APP_DIR/venv"
+    fi
 fi
 source "$APP_DIR/venv/bin/activate"
 pip install --upgrade pip
@@ -71,6 +92,9 @@ if [ -n "$PUBLIC_DNS" ] && [ "$PUBLIC_DNS" != "$PUBLIC_IP" ]; then
     ALLOWED_HOSTS_VAL="$ALLOWED_HOSTS_VAL,$PUBLIC_DNS"
     CSRF_ORIGINS_VAL="$CSRF_ORIGINS_VAL,http://$PUBLIC_DNS,https://$PUBLIC_DNS"
 fi
+
+# Allow wildcards so incoming EC2 requests match smoothly
+ALLOWED_HOSTS_VAL="$ALLOWED_HOSTS_VAL,*"
 
 cat <<EOF > "$APP_DIR/.env"
 # Production Environment Configuration
@@ -95,11 +119,31 @@ python manage.py collectstatic --noinput
 # Run seed data to populate categories, products, banners, and default admin
 python manage.py seed_data
 
-# Ensure permissions for www-data
-chown -R www-data:www-data "$APP_DIR"
+# Determine web user and group
+if id -u nginx >/dev/null 2>&1; then
+    WEB_USER="nginx"
+    WEB_GROUP="nginx"
+elif id -u www-data >/dev/null 2>&1; then
+    WEB_USER="www-data"
+    WEB_GROUP="www-data"
+else
+    WEB_USER="ec2-user"
+    WEB_GROUP="ec2-user"
+fi
+
+echo "  -> Web service user: $WEB_USER"
+chown -R $WEB_USER:$WEB_GROUP "$APP_DIR"
 chmod -R 775 "$APP_DIR/media" "$APP_DIR/staticfiles"
-chmod 664 "$APP_DIR/db.sqlite3" || true
+chmod 664 "$APP_DIR/db.sqlite3" 2>/dev/null || true
 chmod 775 "$APP_DIR"
+
+# Configure SELinux if active (Amazon Linux / CentOS / RHEL)
+if command -v setsebool >/dev/null 2>&1; then
+    setsebool -P httpd_can_network_connect 1 2>/dev/null || true
+fi
+if command -v chcon >/dev/null 2>&1; then
+    chcon -R -t httpd_sys_content_t "$APP_DIR" 2>/dev/null || true
+fi
 
 echo "[7/8] Configuring systemd Gunicorn service..."
 cat <<EOF > /etc/systemd/system/vcart.service
@@ -108,8 +152,8 @@ Description=Vcart Django E-Commerce Platform (Gunicorn)
 After=network.target
 
 [Service]
-User=www-data
-Group=www-data
+User=$WEB_USER
+Group=$WEB_GROUP
 WorkingDirectory=$APP_DIR
 ExecStart=$APP_DIR/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 --timeout 60 vcart.wsgi:application
 Restart=always
@@ -125,23 +169,24 @@ systemctl enable vcart
 systemctl restart vcart
 
 echo "[8/8] Configuring Nginx reverse proxy..."
-cat <<EOF > /etc/nginx/sites-available/vcart
-server {
-    listen 80;
-    server_name $PUBLIC_IP $PUBLIC_DNS;
+
+NGINX_CONF_CONTENT="server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
 
     client_max_body_size 50M;
 
     location /static/ {
         alias $APP_DIR/staticfiles/;
         expires 30d;
-        add_header Cache-Control "public, max-age=2592000";
+        add_header Cache-Control \"public, max-age=2592000\";
     }
 
     location /media/ {
         alias $APP_DIR/media/;
         expires 30d;
-        add_header Cache-Control "public, max-age=2592000";
+        add_header Cache-Control \"public, max-age=2592000\";
     }
 
     location / {
@@ -153,30 +198,47 @@ server {
         proxy_connect_timeout 60s;
         proxy_read_timeout 60s;
     }
-}
-EOF
+}"
 
-# Enable site in nginx
-ln -sf /etc/nginx/sites-available/vcart /etc/nginx/sites-enabled/vcart
-rm -f /etc/nginx/sites-enabled/default
+# Handle Amazon Linux / RHEL (/etc/nginx/conf.d/) vs Debian / Ubuntu (/etc/nginx/sites-available/)
+if [ -d "/etc/nginx/conf.d" ]; then
+    # Remove conflicting default server in nginx.conf if present
+    if [ -f "/etc/nginx/nginx.conf" ]; then
+        sed -i 's/default_server//g' /etc/nginx/nginx.conf 2>/dev/null || true
+    fi
+    echo "$NGINX_CONF_CONTENT" > /etc/nginx/conf.d/vcart.conf
+fi
 
+if [ -d "/etc/nginx/sites-available" ]; then
+    echo "$NGINX_CONF_CONTENT" > /etc/nginx/sites-available/vcart
+    mkdir -p /etc/nginx/sites-enabled
+    ln -sf /etc/nginx/sites-available/vcart /etc/nginx/sites-enabled/vcart
+    rm -f /etc/nginx/sites-enabled/default
+fi
+
+# Ensure nginx directory permissions
 nginx -t
+systemctl enable nginx
 systemctl restart nginx
 
-# Configure firewall if ufw is present
+# Firewall settings
 if command -v ufw >/dev/null 2>&1; then
     ufw allow 'OpenSSH' || true
     ufw allow 80/tcp || true
     ufw allow 443/tcp || true
+elif command -v firewall-cmd >/dev/null 2>&1; then
+    firewall-cmd --permanent --add-service=http 2>/dev/null || true
+    firewall-cmd --permanent --add-service=https 2>/dev/null || true
+    firewall-cmd --reload 2>/dev/null || true
 fi
 
 echo ""
 echo "=========================================================="
 echo " 🎉 Vcart successfully deployed and running on AWS EC2!"
 echo "=========================================================="
-echo " 🌐 Storefront URL:      http://$PUBLIC_IP/"
+echo " 🌐 Storefront URL:       http://$PUBLIC_IP/"
 echo " 📊 Operations Dashboard: http://$PUBLIC_IP/dashboard/"
-echo " ⚙️ Django Admin Panel:   http://$PUBLIC_IP/admin/"
+echo " ⚙️ Django Admin Panel:    http://$PUBLIC_IP/admin/"
 echo ""
 echo " 🔐 Administrator Login:"
 echo "    Username: admin"
