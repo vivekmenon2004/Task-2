@@ -1,5 +1,6 @@
 import io
 import os
+import math
 from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.core.files.base import ContentFile
@@ -23,7 +24,7 @@ TEST_USER_LAST_NAME = 'User'
 
 
 # ==============================================================================
-# PIL Image Generator Utilities (Clean, non-copyrighted placeholders)
+# FONT HELPER
 # ==============================================================================
 
 def get_font(size=20, bold=False):
@@ -51,178 +52,440 @@ def get_font(size=20, bold=False):
         return ImageFont.load_default()
 
 
-def create_gradient_canvas(width, height, color_top, color_bottom):
-    """Generate a vertical 2-stop color gradient."""
-    base = Image.new('RGB', (width, height), color_top)
-    top_r, top_g, top_b = color_top
-    bot_r, bot_g, bot_b = color_bottom
-    draw = ImageDraw.Draw(base)
-    for y in range(height):
-        ratio = y / max(1, height - 1)
-        r = int(top_r + (bot_r - top_r) * ratio)
-        g = int(top_g + (bot_g - top_g) * ratio)
-        b = int(top_b + (bot_b - top_b) * ratio)
-        draw.line([(0, y), (width, y)], fill=(r, g, b))
-    return base
+# ==============================================================================
+# HIGH-FIDELITY VECTOR DRAWING ENGINE (Pure Pillow PNGs, Non-Copyrighted)
+# ==============================================================================
+
+def create_radial_gradient_canvas(width, height, inner_color, outer_color):
+    """Create a canvas with smooth radial ambient studio lighting."""
+    img = Image.new('RGBA', (width, height), outer_color)
+    draw = ImageDraw.Draw(img)
+    cx, cy = width // 2, height // 2
+    max_radius = int(math.hypot(width, height) / 1.7)
+    step = 4
+    for r in range(max_radius, 0, -step):
+        ratio = r / max_radius
+        red = int(inner_color[0] + (outer_color[0] - inner_color[0]) * ratio)
+        green = int(inner_color[1] + (outer_color[1] - inner_color[1]) * ratio)
+        blue = int(inner_color[2] + (outer_color[2] - inner_color[2]) * ratio)
+        draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(red, green, blue, 255))
+    return img
 
 
-def draw_device_illustration(draw, icon_type, center_x, center_y, accent_rgb=(0, 113, 227)):
-    """Draw a minimalist vector-style hardware illustration."""
-    if icon_type == 'phone':
-        # Smartphone silhouette
-        w, h = 130, 240
-        x0, y0 = center_x - w // 2, center_y - h // 2
-        x1, y1 = center_x + w // 2, center_y + h // 2
-        # Outer body
-        draw.rounded_rectangle([x0, y0, x1, y1], radius=28, outline=accent_rgb, width=4, fill=(15, 23, 42))
-        # Inner screen
-        draw.rounded_rectangle([x0 + 8, y0 + 10, x1 - 8, y1 - 10], radius=20, outline=(51, 65, 85), width=2, fill=(2, 6, 23))
-        # Dynamic Island pill
-        draw.rounded_rectangle([center_x - 22, y0 + 16, center_x + 22, y0 + 26], radius=5, fill=(15, 23, 42))
-        # Home bar
-        draw.rounded_rectangle([center_x - 30, y1 - 20, center_x + 30, y1 - 17], radius=2, fill=(100, 116, 139))
-
-    elif icon_type == 'laptop':
-        # Laptop silhouette
-        screen_w, screen_h = 240, 150
-        sx0, sy0 = center_x - screen_w // 2, center_y - 30 - screen_h // 2
-        sx1, sy1 = center_x + screen_w // 2, center_y - 30 + screen_h // 2
-        # Lid / Screen
-        draw.rounded_rectangle([sx0, sy0, sx1, sy1], radius=14, outline=accent_rgb, width=4, fill=(15, 23, 42))
-        draw.rounded_rectangle([sx0 + 8, sy0 + 8, sx1 - 8, sy1 - 8], radius=8, outline=(51, 65, 85), width=2, fill=(2, 6, 23))
-        # Camera notch
-        draw.ellipse([center_x - 3, sy0 + 3, center_x + 3, sy0 + 9], fill=accent_rgb)
-        # Base keyboard chassis
-        base_w, base_h = 280, 18
-        bx0, by0 = center_x - base_w // 2, sy1
-        bx1, by1 = center_x + base_w // 2, sy1 + base_h
-        draw.rounded_rectangle([bx0, by0, bx1, by1], radius=6, outline=accent_rgb, width=3, fill=(30, 41, 59))
-        # Trackpad notch
-        draw.rounded_rectangle([center_x - 35, by0, center_x + 35, by0 + 4], radius=2, fill=(148, 163, 184))
-
-    elif icon_type == 'audio':
-        # Studio headphones silhouette
-        r = 75
-        # Headband arc
-        draw.arc([center_x - r, center_y - r - 20, center_x + r, center_y + r - 20], start=180, end=0, fill=accent_rgb, width=8)
-        # Headband cushion
-        draw.arc([center_x - r + 8, center_y - r - 12, center_x + r - 8, center_y + r - 28], start=190, end=350, fill=(148, 163, 184), width=4)
-        # Left ear cup
-        draw.rounded_rectangle([center_x - r - 18, center_y - 25, center_x - r + 18, center_y + 45], radius=18, outline=accent_rgb, width=4, fill=(15, 23, 42))
-        # Right ear cup
-        draw.rounded_rectangle([center_x + r - 18, center_y - 25, center_x + r + 18, center_y + 45], radius=18, outline=accent_rgb, width=4, fill=(15, 23, 42))
-        # Soundwave accent lines
-        draw.line([center_x - 20, center_y + 10, center_x - 20, center_y + 25], fill=(56, 189, 248), width=3)
-        draw.line([center_x, center_y + 2, center_x, center_y + 33], fill=accent_rgb, width=3)
-        draw.line([center_x + 20, center_y + 10, center_x + 20, center_y + 25], fill=(56, 189, 248), width=3)
-
-    else:
-        # Accessory: MagSafe Magnetic Pad & Ring
-        r = 70
-        draw.ellipse([center_x - r, center_y - r, center_x + r, center_y + r], outline=accent_rgb, width=6, fill=(15, 23, 42))
-        draw.ellipse([center_x - 36, center_y - 36, center_x + 36, center_y + 36], outline=(56, 189, 248), width=3, fill=(2, 6, 23))
-        # Lightning / Charging Bolt
-        bolt_points = [
-            (center_x + 4, center_y - 22),
-            (center_x - 12, center_y + 2),
-            (center_x - 1, center_y + 2),
-            (center_x - 4, center_y + 22),
-            (center_x + 12, center_y - 2),
-            (center_x + 1, center_y - 2),
-        ]
-        draw.polygon(bolt_points, fill=(250, 204, 21))
-
-
-def generate_placeholder_image(width, height, title, subtitle="", icon_type="phone", color_theme="blue"):
+def draw_phone(draw, cx, cy, scale=1.0, is_pro=True, color_theme="titanium"):
     """
-    Generate a sleek, modern placeholder image using Pillow.
-    Returns a ContentFile ready to assign to Django ImageField.
+    Draw a precise, high-fidelity smartphone graphic.
+    Features: Titanium/aluminum bezel, Dynamic Island, OLED wallpaper, Action button, Home bar.
     """
-    theme_palettes = {
-        "blue": {
-            "top": (10, 15, 30),
-            "bottom": (2, 6, 18),
-            "accent": (0, 113, 227),
-            "accent_light": (56, 189, 248),
-        },
-        "purple": {
-            "top": (22, 12, 38),
-            "bottom": (8, 4, 18),
-            "accent": (147, 51, 234),
-            "accent_light": (192, 132, 252),
-        },
-        "slate": {
-            "top": (24, 28, 36),
-            "bottom": (11, 13, 18),
-            "accent": (99, 102, 241),
-            "accent_light": (129, 140, 248),
-        },
-        "emerald": {
-            "top": (10, 30, 24),
-            "bottom": (3, 14, 11),
-            "accent": (16, 185, 129),
-            "accent_light": (52, 211, 153),
-        },
+    w = int(220 * scale)
+    h = int(450 * scale)
+    r = int(38 * scale)
+    x0, y0 = cx - w // 2, cy - h // 2
+    x1, y1 = cx + w // 2, cy + h // 2
+
+    chassis_colors = {
+        "titanium": ((70, 75, 85), (35, 38, 45), (140, 145, 155)),
+        "ultramarine": ((30, 60, 130), (15, 25, 60), (70, 130, 240)),
+        "black": ((45, 45, 48), (20, 20, 22), (90, 90, 95)),
     }
+    rim_outer, rim_inner, rim_highlight = chassis_colors.get(color_theme, chassis_colors["titanium"])
 
-    palette = theme_palettes.get(color_theme, theme_palettes["blue"])
-    img = create_gradient_canvas(width, height, palette["top"], palette["bottom"])
+    # Outer Hardware Buttons
+    btn_w = max(2, int(3 * scale))
+    draw.rounded_rectangle([x0 - btn_w, y0 + int(70 * scale), x0, y0 + int(98 * scale)], radius=2, fill=rim_highlight)  # Action Button
+    draw.rounded_rectangle([x0 - btn_w, y0 + int(115 * scale), x0, y0 + int(160 * scale)], radius=2, fill=rim_highlight)  # Vol Up
+    draw.rounded_rectangle([x0 - btn_w, y0 + int(172 * scale), x0, y0 + int(217 * scale)], radius=2, fill=rim_highlight)  # Vol Down
+    draw.rounded_rectangle([x1, y0 + int(120 * scale), x1 + btn_w, y0 + int(185 * scale)], radius=2, fill=rim_highlight)  # Power Button
+
+    # Phone Outer Chassis
+    draw.rounded_rectangle([x0, y0, x1, y1], radius=r, outline=rim_highlight, width=max(1, int(2 * scale)), fill=rim_outer)
+    draw.rounded_rectangle([x0 + int(3 * scale), y0 + int(3 * scale), x1 - int(3 * scale), y1 - int(3 * scale)], radius=r - 2, fill=rim_inner)
+
+    # Screen Bezel & Display
+    bezel = int(8 * scale)
+    sx0, sy0 = x0 + bezel, y0 + bezel
+    sx1, sy1 = x1 - bezel, y1 - bezel
+    draw.rounded_rectangle([sx0, sy0, sx1, sy1], radius=r - 6, fill=(5, 7, 12))
+
+    # OLED Screen Wallpaper (Multi-color abstract aurora ribbons)
+    sw = sx1 - sx0
+    sh = sy1 - sy0
+    for i in range(12):
+        rad_x = int(sw * (0.8 - i * 0.05))
+        rad_y = int(sh * (0.6 - i * 0.04))
+        alpha_color = (
+            int(15 + i * 14) if is_pro else int(10 + i * 8),
+            int(45 + i * 16) if is_pro else int(70 + i * 15),
+            int(180 - i * 10) if is_pro else int(230 - i * 12),
+        )
+        draw.ellipse([cx - rad_x // 2, cy - rad_y // 2, cx + rad_x // 2, cy + rad_y // 2], outline=alpha_color, width=max(1, int(2 * scale)))
+
+    # Dynamic Island Pill
+    pill_w = int(68 * scale)
+    pill_h = int(20 * scale)
+    draw.rounded_rectangle([cx - pill_w // 2, sy0 + int(12 * scale), cx + pill_w // 2, sy0 + int(12 * scale) + pill_h], radius=int(10 * scale), fill=(0, 0, 0))
+    # Camera glint & sensor dot
+    draw.ellipse([cx - int(18 * scale), sy0 + int(18 * scale), cx - int(10 * scale), sy0 + int(26 * scale)], fill=(12, 28, 64))
+    draw.ellipse([cx + int(14 * scale), sy0 + int(19 * scale), cx + int(18 * scale), sy0 + int(23 * scale)], fill=(30, 30, 35))
+
+    # Home Indicator Bar
+    bar_w = int(80 * scale)
+    draw.rounded_rectangle([cx - bar_w // 2, sy1 - int(14 * scale), cx + bar_w // 2, sy1 - int(10 * scale)], radius=2, fill=(200, 210, 225))
+
+
+def draw_laptop(draw, cx, cy, scale=1.0, color_theme="space_black"):
+    """
+    Draw a precise, high-fidelity pro notebook computer.
+    Features: Open Liquid Retina XDR display with camera notch, unibody aluminum deck, keyboard with spacebar, trackpad.
+    """
+    lw = int(420 * scale)
+    lh = int(250 * scale)
+
+    # 1. Open Screen Lid (Upper section)
+    screen_w = int(360 * scale)
+    screen_h = int(220 * scale)
+    sx0, sy0 = cx - screen_w // 2, cy - int(95 * scale) - screen_h // 2
+    sx1, sy1 = cx + screen_w // 2, cy - int(95 * scale) + screen_h // 2
+    sr = int(14 * scale)
+
+    # Lid Outer Metal Frame
+    lid_rim = (120, 125, 135) if color_theme == "silver" else (55, 60, 70)
+    lid_bg = (180, 185, 195) if color_theme == "silver" else (22, 24, 28)
+    draw.rounded_rectangle([sx0, sy0, sx1, sy1], radius=sr, outline=lid_rim, width=max(1, int(2 * scale)), fill=lid_bg)
+
+    # Display Bezel & Glass
+    bezel = int(7 * scale)
+    dsx0, dsy0 = sx0 + bezel, sy0 + bezel
+    dsx1, dsy1 = sx1 - bezel, sy1 - bezel
+    draw.rounded_rectangle([dsx0, dsy0, dsx1, dsy1], radius=sr - 4, fill=(4, 6, 10))
+
+    # Display Wallpaper (High Dynamic Range creative curves)
+    dw = dsx1 - dsx0
+    dh = dsy1 - dsy0
+    for i in range(14):
+        offset = int(i * 12 * scale)
+        color = (
+            min(255, 10 + i * 16),
+            min(255, 60 + i * 14),
+            min(255, 200 - i * 8),
+        )
+        draw.arc([dsx0 + offset, dsy0 + int(30 * scale), dsx1 - offset, dsy1 + int(40 * scale)], start=180, end=360, fill=color, width=max(1, int(2 * scale)))
+
+    # Display Notch & WebCam
+    notch_w = int(34 * scale)
+    notch_h = int(10 * scale)
+    draw.rounded_rectangle([cx - notch_w // 2, dsy0, cx + notch_w // 2, dsy0 + notch_h], radius=2, fill=(4, 6, 10))
+    draw.ellipse([cx - 2, dsy0 + 2, cx + 2, dsy0 + 6], fill=(40, 80, 140))
+
+    # 2. Hinge Bar
+    hw = int(140 * scale)
+    draw.rounded_rectangle([cx - hw // 2, sy1 - 2, cx + hw // 2, sy1 + int(6 * scale)], radius=3, fill=(18, 20, 24))
+
+    # 3. Base Keyboard Chassis (Perspective bottom deck)
+    base_w = lw
+    base_h = int(115 * scale)
+    bx0, by0 = cx - base_w // 2, sy1 + 2
+    bx1, by1 = cx + base_w // 2, by0 + base_h
+
+    # Aluminum Base Deck
+    deck_color = (200, 205, 215) if color_theme == "silver" else (30, 33, 38)
+    deck_outline = (130, 135, 145) if color_theme == "silver" else (65, 70, 80)
+    draw.rounded_rectangle([bx0, by0, bx1, by1], radius=int(10 * scale), outline=deck_outline, width=max(1, int(2 * scale)), fill=deck_color)
+
+    # Chamfered Front Lip
+    draw.line([bx0 + int(10 * scale), by1, bx1 - int(10 * scale), by1], fill=(90, 95, 105), width=max(1, int(2 * scale)))
+    draw.rounded_rectangle([cx - int(40 * scale), by1 - int(4 * scale), cx + int(40 * scale), by1], radius=2, fill=(15, 16, 20))  # Display opening lip
+
+    # Recessed Keyboard Well
+    kw = int(340 * scale)
+    kh = int(68 * scale)
+    kx0, ky0 = cx - kw // 2, by0 + int(8 * scale)
+    kx1, ky1 = cx + kw // 2, ky0 + kh
+    draw.rounded_rectangle([kx0, ky0, kx1, ky1], radius=4, fill=(12, 13, 16))
+
+    # Key Caps (Simulated chiclet layout)
+    key_rows = 4
+    key_cols = 12
+    key_h = max(2, int((kh - 12) / key_rows))
+    key_w = max(2, int((kw - 28) / key_cols))
+    for r_idx in range(key_rows):
+        cur_y = ky0 + 3 + r_idx * (key_h + 2)
+        for c_idx in range(key_cols):
+            cur_x = kx0 + 4 + c_idx * (key_w + 2)
+            draw.rounded_rectangle([cur_x, cur_y, cur_x + key_w, cur_y + key_h], radius=1, fill=(28, 30, 35))
+
+    # Spacebar
+    sp_y = ky0 + 3 + (key_rows - 1) * (key_h + 2)
+    draw.rounded_rectangle([cx - int(48 * scale), sp_y, cx + int(48 * scale), sp_y + key_h], radius=1, fill=(35, 38, 44))
+
+    # Centered Force Touch Trackpad
+    tw = int(110 * scale)
+    th = int(32 * scale)
+    tx0 = cx - tw // 2
+    ty0 = ky1 + int(5 * scale)
+    draw.rounded_rectangle([tx0, ty0, tx0 + tw, ty0 + th], radius=4, outline=(55, 60, 70), width=1, fill=(24, 26, 30))
+
+
+def draw_earbuds(draw, cx, cy, scale=1.0):
+    """
+    Draw high-fidelity wireless earbuds and sleek magnetic charging case.
+    """
+    # 1. Charging Case (Left / Center-left)
+    casew = int(160 * scale)
+    caseh = int(120 * scale)
+    case_x0 = cx - int(120 * scale)
+    case_y0 = cy - caseh // 2
+    case_x1 = case_x0 + casew
+    case_y1 = case_y0 + caseh
+
+    # Case Pebble Shell
+    draw.rounded_rectangle([case_x0, case_y0, case_x1, case_y1], radius=int(36 * scale), outline=(220, 225, 235), width=max(1, int(2 * scale)), fill=(245, 248, 252))
+    # Case Lid Seam Line
+    seam_y = case_y0 + int(36 * scale)
+    draw.line([case_x0 + 6, seam_y, case_x1 - 6, seam_y], fill=(180, 185, 195), width=max(1, int(2 * scale)))
+    # LED Indicator Light (Glowing green)
+    draw.ellipse([case_x0 + casew // 2 - 3, seam_y + int(24 * scale), case_x0 + casew // 2 + 3, seam_y + int(30 * scale)], fill=(52, 211, 153))
+
+    # 2. Left and Right In-Ear Buds (Center-right)
+    for idx, offset_x in enumerate([int(70 * scale), int(125 * scale)]):
+        bud_x = cx + offset_x
+        bud_y = cy - int(25 * scale)
+        # Contoured acoustic head
+        head_r = int(22 * scale)
+        draw.ellipse([bud_x - head_r, bud_y - head_r, bud_x + head_r, bud_y + head_r], outline=(200, 205, 215), width=2, fill=(255, 255, 255))
+        # Silicone In-Ear Tip
+        tip_dir = -1 if idx == 0 else 1
+        draw.ellipse([bud_x + tip_dir * int(14 * scale) - 10, bud_y - 10, bud_x + tip_dir * int(14 * scale) + 10, bud_y + 10], fill=(225, 230, 240))
+        # Downward Stem
+        stem_w = int(12 * scale)
+        stem_h = int(60 * scale)
+        draw.rounded_rectangle([bud_x - stem_w // 2, bud_y, bud_x + stem_w // 2, bud_y + stem_h], radius=4, outline=(200, 205, 215), width=1, fill=(250, 252, 255))
+        # Chrome Charging Contacts at bottom
+        draw.rounded_rectangle([bud_x - stem_w // 2 + 1, bud_y + stem_h - 4, bud_x + stem_w // 2 - 1, bud_y + stem_h], radius=1, fill=(160, 165, 175))
+        # Mic Vent Indentation
+        draw.line([bud_x - stem_w // 2 + 2, bud_y + int(20 * scale), bud_x + stem_w // 2 - 2, bud_y + int(20 * scale)], fill=(150, 155, 165), width=1)
+
+
+def draw_headphones(draw, cx, cy, scale=1.0):
+    """
+    Draw luxury over-ear headphones with stainless steel mesh canopy and aluminum ear cups.
+    """
+    r = int(130 * scale)
+    # Headband Mesh Canopy Arc
+    draw.arc([cx - r, cy - r - int(50 * scale), cx + r, cy + r - int(50 * scale)], start=180, end=0, fill=(140, 145, 155), width=int(14 * scale))
+    # Stainless Steel Telescoping Tubes
+    draw.arc([cx - r + 4, cy - r - int(46 * scale), cx + r - 4, cy + r - int(46 * scale)], start=185, end=355, fill=(210, 215, 225), width=int(4 * scale))
+
+    # Ear Cups (Left & Right)
+    cup_w = int(58 * scale)
+    cup_h = int(105 * scale)
+    cup_r = int(24 * scale)
+
+    for side in [-1, 1]:
+        cup_cx = cx + side * r
+        cup_cy = cy + int(10 * scale)
+        x0, y0 = cup_cx - cup_w // 2, cup_cy - cup_h // 2
+        x1, y1 = cup_cx + cup_w // 2, cup_cy + cup_h // 2
+
+        # Outer Anodized Aluminum Shell
+        draw.rounded_rectangle([x0, y0, x1, y1], radius=cup_r, outline=(180, 185, 195), width=max(1, int(2 * scale)), fill=(230, 235, 245))
+        # Memory Foam Cushion Inset
+        draw.rounded_rectangle([x0 + 6, y0 + 6, x1 - 6, y1 - 6], radius=cup_r - 4, outline=(140, 145, 155), width=1, fill=(195, 200, 210))
+
+        # Digital Crown on Right Cup
+        if side == 1:
+            draw.rounded_rectangle([x1 - 2, y0 + int(12 * scale), x1 + int(6 * scale), y0 + int(26 * scale)], radius=2, fill=(160, 165, 175))
+
+
+def draw_speaker(draw, cx, cy, scale=1.0):
+    """
+    Draw compact wireless smart speaker with 360-degree acoustic fabric mesh.
+    """
+    w = int(190 * scale)
+    h = int(240 * scale)
+    x0, y0 = cx - w // 2, cy - h // 2
+    x1, y1 = cx + w // 2, cy + h // 2
+
+    # Cylindrical Acoustic Fabric Body
+    draw.rounded_rectangle([x0, y0, x1, y1], radius=int(60 * scale), outline=(45, 50, 60), width=max(1, int(2 * scale)), fill=(20, 23, 28))
+
+    # Acoustic Mesh Texture Lines
+    for y_step in range(y0 + 20, y1 - 20, int(10 * scale)):
+        draw.line([x0 + int(12 * scale), y_step, x1 - int(12 * scale), y_step], fill=(32, 36, 44), width=1)
+
+    # Top Circular Touch Panel
+    panel_r = int(55 * scale)
+    draw.ellipse([cx - panel_r, y0 - int(6 * scale), cx + panel_r, y0 + int(32 * scale)], outline=(60, 65, 75), width=2, fill=(10, 12, 16))
+
+    # Glowing Assistant Ring & Volume Symbols
+    glow_r = int(26 * scale)
+    draw.ellipse([cx - glow_r, y0 + int(3 * scale), cx + glow_r, y0 + int(23 * scale)], outline=(56, 189, 248), width=2)
+    # Plus & Minus icons
+    draw.line([cx - int(32 * scale), y0 + int(13 * scale), cx - int(24 * scale), y0 + int(13 * scale)], fill=(180, 190, 205), width=2)  # -
+    draw.line([cx + int(24 * scale), y0 + int(13 * scale), cx + int(32 * scale), y0 + int(13 * scale)], fill=(180, 190, 205), width=2)  # +
+    draw.line([cx + int(28 * scale), y0 + int(9 * scale), cx + int(28 * scale), y0 + int(17 * scale)], fill=(180, 190, 205), width=2)
+
+
+def draw_wireless_charger(draw, cx, cy, scale=1.0):
+    """
+    Draw dual magnetic fast-charging dock (MagSafe phone pad + Watch charging puck).
+    """
+    pad_w = int(320 * scale)
+    pad_h = int(170 * scale)
+    x0, y0 = cx - pad_w // 2, cy - pad_h // 2
+    x1, y1 = cx + pad_w // 2, cy + pad_h // 2
+
+    # Unibody Folding Base
+    draw.rounded_rectangle([x0, y0, x1, y1], radius=int(28 * scale), outline=(70, 75, 85), width=max(1, int(2 * scale)), fill=(25, 28, 34))
+    # Center Folding Hinge
+    draw.line([cx, y0 + 6, cx, y1 - 6], fill=(45, 50, 60), width=max(1, int(3 * scale)))
+
+    # Left: Magnetic Phone Charging Ring
+    l_cx = cx - int(78 * scale)
+    draw.ellipse([l_cx - 48, cy - 48, l_cx + 48, cy + 48], outline=(56, 189, 248), width=3, fill=(18, 20, 25))
+    draw.ellipse([l_cx - 24, cy - 24, l_cx + 24, cy + 24], outline=(100, 116, 139), width=2)
+    # Power Lightning Bolt
+    bolt = [
+        (l_cx + 3, cy - 14), (l_cx - 8, cy + 1), (l_cx, cy + 1),
+        (l_cx - 3, cy + 14), (l_cx + 8, cy - 1), (l_cx, cy - 1)
+    ]
+    draw.polygon(bolt, fill=(250, 204, 21))
+
+    # Right: Watch Pop-Up Charging Puck
+    r_cx = cx + int(78 * scale)
+    draw.ellipse([r_cx - 40, cy - 40, r_cx + 40, cy + 40], outline=(148, 163, 184), width=3, fill=(240, 243, 248))
+    draw.ellipse([r_cx - 26, cy - 26, r_cx + 26, cy + 26], outline=(200, 205, 215), width=2, fill=(255, 255, 255))
+
+
+def draw_leather_case(draw, cx, cy, scale=1.0):
+    """
+    Draw finely tanned European leather protective case with MagSafe magnetic ring.
+    """
+    w = int(220 * scale)
+    h = int(450 * scale)
+    r = int(38 * scale)
+    x0, y0 = cx - w // 2, cy - h // 2
+    x1, y1 = cx + w // 2, cy + h // 2
+
+    # Rich Saddle Leather Back
+    draw.rounded_rectangle([x0, y0, x1, y1], radius=r, outline=(160, 90, 45), width=max(1, int(2 * scale)), fill=(115, 62, 32))
+    # Perimeter Stitched Contour
+    draw.rounded_rectangle([x0 + 6, y0 + 6, x1 - 6, y1 - 6], radius=r - 4, outline=(140, 75, 38), width=1)
+
+    # Top-Left Camera Cutout Ring
+    cam_size = int(90 * scale)
+    cx0, cy0 = x0 + int(16 * scale), y0 + int(16 * scale)
+    draw.rounded_rectangle([cx0, cy0, cx0 + cam_size, cy0 + cam_size], radius=int(22 * scale), outline=(80, 42, 22), width=3, fill=(20, 22, 26))
+
+    # Subtle MagSafe Magnetic Ring & Orientation Line
+    m_r = int(48 * scale)
+    draw.ellipse([cx - m_r, cy - m_r + int(20 * scale), cx + m_r, cy + m_r + int(20 * scale)], outline=(145, 82, 44), width=2)
+    draw.line([cx, cy + int(72 * scale), cx, cy + int(96 * scale)], fill=(145, 82, 44), width=2)
+
+
+# ==============================================================================
+# IMAGE DISPATCHER (Strictly PNG)
+# ==============================================================================
+
+def generate_hardware_png(width, height, item_type, title, subtitle="", color_theme="titanium"):
+    """
+    Generate high-resolution, perfectly tailored PNG images for products, categories, or banners.
+    Outputs strict PNG byte buffers.
+    """
+    # Palette definition for ambient studio canvas
+    palettes = {
+        "titanium": ((14, 18, 26), (6, 8, 12)),
+        "ultramarine": ((12, 22, 42), (5, 9, 18)),
+        "space_black": ((18, 18, 22), (6, 7, 9)),
+        "silver": ((22, 24, 30), (8, 9, 13)),
+        "purple": ((24, 14, 36), (8, 4, 14)),
+        "emerald": ((10, 26, 20), (3, 12, 9)),
+        "saddle": ((28, 16, 10), (10, 6, 4)),
+    }
+    top_c, bot_c = palettes.get(color_theme, palettes["titanium"])
+    img = create_radial_gradient_canvas(width, height, top_c, bot_c)
     draw = ImageDraw.Draw(img)
 
-    # Ambient glow circle
-    glow_radius = min(width, height) // 3
-    glow_box = [
-        width // 2 - glow_radius,
-        height // 2 - 20 - glow_radius,
-        width // 2 + glow_radius,
-        height // 2 - 20 + glow_radius,
-    ]
-    draw.ellipse(glow_box, outline=palette["accent_light"], width=1)
+    # Center drawing origin
+    cx, cy = width // 2, height // 2
 
-    # Draw hardware illustration
-    center_y = height // 2 - (35 if height >= 600 else 15)
-    draw_device_illustration(draw, icon_type, width // 2, center_y, accent_rgb=palette["accent"])
+    # Draw specific hardware model
+    if item_type == "phone_pro":
+        draw_phone(draw, cx, cy - 25, scale=1.0, is_pro=True, color_theme="titanium")
+    elif item_type == "phone_neo":
+        draw_phone(draw, cx, cy - 25, scale=1.0, is_pro=False, color_theme="ultramarine")
+    elif item_type == "laptop_pro":
+        draw_laptop(draw, cx, cy - 20, scale=1.0, color_theme="space_black")
+    elif item_type == "laptop_air":
+        draw_laptop(draw, cx, cy - 20, scale=0.92, color_theme="space_black")
+    elif item_type == "laptop_studio":
+        draw_laptop(draw, cx, cy - 20, scale=0.96, color_theme="silver")
+    elif item_type == "earbuds":
+        draw_earbuds(draw, cx, cy - 25, scale=1.0)
+    elif item_type == "headphones":
+        draw_headphones(draw, cx, cy - 25, scale=1.0)
+    elif item_type == "speaker":
+        draw_speaker(draw, cx, cy - 25, scale=1.0)
+    elif item_type == "wireless_charger":
+        draw_wireless_charger(draw, cx, cy - 25, scale=1.0)
+    elif item_type == "leather_case":
+        draw_leather_case(draw, cx, cy - 25, scale=1.0)
+    elif item_type == "cat_phones":
+        draw_phone(draw, cx, cy - 25, scale=1.0, is_pro=True, color_theme="titanium")
+    elif item_type == "cat_laptops":
+        draw_laptop(draw, cx, cy - 20, scale=0.98, color_theme="space_black")
+    elif item_type == "cat_audio":
+        draw_headphones(draw, cx, cy - 25, scale=1.0)
+    elif item_type == "cat_accessories":
+        draw_wireless_charger(draw, cx, cy - 25, scale=1.0)
+    elif item_type == "banner_laptop":
+        # Wide Banner Layout (1600x900)
+        draw_laptop(draw, int(width * 0.65), cy, scale=1.35, color_theme="space_black")
+    elif item_type == "banner_phone":
+        draw_phone(draw, int(width * 0.68), cy, scale=1.35, is_pro=True, color_theme="titanium")
+    elif item_type == "banner_audio":
+        draw_headphones(draw, int(width * 0.65), cy, scale=1.35)
 
-    # Draw Title and Subtitle Text at the bottom
-    font_title = get_font(size=max(18, min(width // 22, 34)), bold=True)
-    font_sub = get_font(size=max(12, min(width // 40, 18)), bold=False)
+    # Hardware Typographic Labels on Canvas Bottom
+    if not item_type.startswith("banner_"):
+        font_title = get_font(size=max(18, min(width // 24, 32)), bold=True)
+        font_sub = get_font(size=max(12, min(width // 42, 16)), bold=False)
 
-    title_clean = title.strip()
-    # Title
-    try:
-        bbox_t = draw.textbbox((0, 0), title_clean, font=font_title)
-        t_w = bbox_t[2] - bbox_t[0]
-    except Exception:
-        t_w = len(title_clean) * 12
-    draw.text(((width - t_w) // 2, height - (95 if height >= 600 else 60)), title_clean, fill=(255, 255, 255), font=font_title)
+        # Title
+        t_clean = title.strip()
+        try:
+            bbox_t = draw.textbbox((0, 0), t_clean, font=font_title)
+            tw = bbox_t[2] - bbox_t[0]
+        except Exception:
+            tw = len(t_clean) * 12
+        draw.text(((width - tw) // 2, height - (85 if height >= 600 else 55)), t_clean, fill=(255, 255, 255), font=font_title)
 
-    # Subtitle or Brand mark
-    sub_text = subtitle.strip() if subtitle else "VCART CERTIFIED PRODUCT"
-    try:
-        bbox_s = draw.textbbox((0, 0), sub_text, font=font_sub)
-        s_w = bbox_s[2] - bbox_s[0]
-    except Exception:
-        s_w = len(sub_text) * 7
-    draw.text(((width - s_w) // 2, height - (55 if height >= 600 else 35)), sub_text, fill=(148, 163, 184), font=font_sub)
+        # Subtitle
+        s_clean = subtitle.strip() if subtitle else "VCART CERTIFIED ORIGINAL"
+        try:
+            bbox_s = draw.textbbox((0, 0), s_clean, font=font_sub)
+            sw = bbox_s[2] - bbox_s[0]
+        except Exception:
+            sw = len(s_clean) * 8
+        draw.text(((width - sw) // 2, height - (50 if height >= 600 else 32)), s_clean, fill=(148, 163, 184), font=font_sub)
 
-    # Brand badge at top corner
-    badge_font = get_font(size=12, bold=True)
-    draw.rounded_rectangle([24, 24, 98, 52], radius=8, outline=palette["accent"], width=1, fill=(15, 23, 42))
-    draw.text((38, 31), "VCART", fill=palette["accent_light"], font=badge_font)
+        # Top-Left Logo Badge
+        draw.rounded_rectangle([28, 28, 102, 56], radius=8, outline=(70, 80, 95), width=1, fill=(15, 18, 24))
+        draw.text((42, 35), "VCART", fill=(56, 189, 248), font=get_font(size=12, bold=True))
 
-    # Save to BytesIO
+    # Save Strictly as PNG
     buffer = io.BytesIO()
     img.save(buffer, format='PNG', optimize=True)
-    slug = slugify(title)[:40]
+    slug = slugify(title)[:45]
     return ContentFile(buffer.getvalue(), name=f"{slug}.png")
 
 
 # ==============================================================================
-# Management Command
+# MANAGEMENT COMMAND
 # ==============================================================================
 
 class Command(BaseCommand):
-    help = "Seed database with Categories, Products, Banners, and Test User with clean placeholder images."
+    help = "Seed database with Categories, Products, Banners, and Test User with clean, correct PNG placeholder images."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -233,7 +496,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         refresh_images = options.get('refresh_images', False)
-        self.stdout.write(self.style.MIGRATE_HEADING("=== Starting Vcart Seed Data ==="))
+        self.stdout.write(self.style.MIGRATE_HEADING("=== Starting Vcart Seed Data (Strict PNG Images) ==="))
 
         # ----------------------------------------------------------------------
         # 1. TEST USER
@@ -258,7 +521,7 @@ class Command(BaseCommand):
         )
 
         # ----------------------------------------------------------------------
-        # 2. CATEGORIES (4 categories)
+        # 2. CATEGORIES (4 categories with correct PNGs)
         # ----------------------------------------------------------------------
         self.stdout.write(self.style.HTTP_INFO("\n[2/4] Seeding 4 categories..."))
         categories_data = [
@@ -266,29 +529,29 @@ class Command(BaseCommand):
                 "name": "Phones",
                 "slug": "phones",
                 "description": "Flagship smartphones engineered for next-generation speed, pro optics, and all-day power.",
-                "icon": "phone",
-                "theme": "blue",
+                "item_type": "cat_phones",
+                "theme": "titanium",
             },
             {
                 "name": "Laptops",
                 "slug": "laptops",
                 "description": "Pro workstations and ultra-light notebooks built for creators, coders, and power users.",
-                "icon": "laptop",
-                "theme": "slate",
+                "item_type": "cat_laptops",
+                "theme": "space_black",
             },
             {
                 "name": "Audio",
                 "slug": "audio",
                 "description": "High-fidelity acoustics, studio monitors, and active noise-canceling personal audio.",
-                "icon": "audio",
-                "theme": "purple",
+                "item_type": "cat_audio",
+                "theme": "silver",
             },
             {
                 "name": "Accessories",
                 "slug": "accessories",
                 "description": "Precision magnetic chargers, protective cases, and premium everyday essentials.",
-                "icon": "accessory",
-                "theme": "emerald",
+                "item_type": "cat_accessories",
+                "theme": "titanium",
             },
         ]
 
@@ -305,16 +568,17 @@ class Command(BaseCommand):
                 category.description = cat_info["description"]
                 category.is_active = True
 
-            if refresh_images or not category.image:
-                img_file = generate_placeholder_image(
-                    width=600,
-                    height=600,
+            # Generate strictly PNG category showcase
+            if refresh_images or not category.image or not category.image.name.endswith('.png'):
+                png_file = generate_hardware_png(
+                    width=800,
+                    height=800,
+                    item_type=cat_info["item_type"],
                     title=cat_info["name"],
-                    subtitle="CATEGORY SHOWCASE",
-                    icon_type=cat_info["icon"],
+                    subtitle="COLLECTION SHOWCASE",
                     color_theme=cat_info["theme"],
                 )
-                category.image.save(f"cat_{cat_info['slug']}.png", img_file, save=False)
+                category.image.save(f"cat_{cat_info['slug']}.png", png_file, save=False)
 
             category.save()
             categories_map[cat_info["slug"]] = category
@@ -322,9 +586,9 @@ class Command(BaseCommand):
             self.stdout.write(f"  -> {act} Category: {category.name}")
 
         # ----------------------------------------------------------------------
-        # 3. PRODUCTS (10 products with original names & descriptions)
+        # 3. PRODUCTS (10 products with individually tailored PNG illustrations)
         # ----------------------------------------------------------------------
-        self.stdout.write(self.style.HTTP_INFO("\n[3/4] Seeding 10 original products..."))
+        self.stdout.write(self.style.HTTP_INFO("\n[3/4] Seeding 10 original products with tailored PNGs..."))
         products_data = [
             # Phones
             {
@@ -340,8 +604,8 @@ class Command(BaseCommand):
                     "Features a revolutionary 48MP triple-lens optical camera system, customizable Action Button, "
                     "and next-generation battery optimization delivering all-day pro endurance."
                 ),
-                "icon": "phone",
-                "theme": "blue",
+                "item_type": "phone_pro",
+                "theme": "titanium",
             },
             {
                 "name": "V-Phone 16 Neo",
@@ -356,8 +620,8 @@ class Command(BaseCommand):
                     "color-infused back glass, and seamless USB-C fast charging.\n\n"
                     "Packed with cutting-edge performance in a light, ergonomic profile."
                 ),
-                "icon": "phone",
-                "theme": "slate",
+                "item_type": "phone_neo",
+                "theme": "ultramarine",
             },
 
             # Laptops
@@ -374,8 +638,8 @@ class Command(BaseCommand):
                     "8K ProRes video rendering, and extreme creative multitasking.\n\n"
                     "Features the breathtaking Liquid Retina XDR display with 1600 nits peak brightness and studio-grade mics."
                 ),
-                "icon": "laptop",
-                "theme": "blue",
+                "item_type": "laptop_pro",
+                "theme": "space_black",
             },
             {
                 "name": "AeroBook Air 14",
@@ -390,8 +654,8 @@ class Command(BaseCommand):
                     "efficiency in a stunning unibody aluminum design.\n\n"
                     "Perfect for students, traveling professionals, and everyday productivity."
                 ),
-                "icon": "laptop",
-                "theme": "slate",
+                "item_type": "laptop_air",
+                "theme": "space_black",
             },
             {
                 "name": "AeroBook Studio 15",
@@ -405,8 +669,8 @@ class Command(BaseCommand):
                     "A balanced powerhouse designed for digital designers and audio engineers who demand sustained throughput.\n\n"
                     "Featuring high-bandwidth memory, MagSafe charging, three Thunderbolt 4 ports, and an SDXC card slot."
                 ),
-                "icon": "laptop",
-                "theme": "purple",
+                "item_type": "laptop_studio",
+                "theme": "silver",
             },
 
             # Audio
@@ -422,8 +686,8 @@ class Command(BaseCommand):
                     "Industry-leading acoustic architecture with pro-level Active Noise Cancellation and adaptive transparency.\n\n"
                     "Experience personalized spatial audio with dynamic head tracking that places sound all around you in three dimensions."
                 ),
-                "icon": "audio",
-                "theme": "purple",
+                "item_type": "earbuds",
+                "theme": "silver",
             },
             {
                 "name": "Pulse SoundMax Pro",
@@ -438,8 +702,8 @@ class Command(BaseCommand):
                     "tactile digital crown volume control.\n\n"
                     "Delivers an uncompromising acoustic experience from deep, resonant bass to crystalline highs."
                 ),
-                "icon": "audio",
-                "theme": "blue",
+                "item_type": "headphones",
+                "theme": "silver",
             },
             {
                 "name": "Pulse Mini Speaker",
@@ -453,8 +717,8 @@ class Command(BaseCommand):
                     "Compact wireless speaker delivering unexpectedly rich 360-degree room-filling sound, seamless stereo pairing, "
                     "and rugged water resistance for home or outdoor listening."
                 ),
-                "icon": "audio",
-                "theme": "slate",
+                "item_type": "speaker",
+                "theme": "titanium",
             },
 
             # Accessories
@@ -470,8 +734,8 @@ class Command(BaseCommand):
                     "Simultaneously fast-charges your phone and smartwatch with precision magnetic alignment and rapid thermal management.\n\n"
                     "Folds compactly for convenient travel and desktop organization."
                 ),
-                "icon": "accessory",
-                "theme": "emerald",
+                "item_type": "wireless_charger",
+                "theme": "titanium",
             },
             {
                 "name": "V-Shield Leather Case",
@@ -485,8 +749,8 @@ class Command(BaseCommand):
                     "Specially tanned and finished European leather that develops a natural patina over time.\n\n"
                     "Features precision machined aluminum buttons and integrated magnets aligned perfectly with MagDock chargers."
                 ),
-                "icon": "accessory",
-                "theme": "emerald",
+                "item_type": "leather_case",
+                "theme": "saddle",
             },
         ]
 
@@ -505,16 +769,17 @@ class Command(BaseCommand):
                 for k, v in p_defaults.items():
                     setattr(product, k, v)
 
-            if refresh_images or not product.image:
-                img_file = generate_placeholder_image(
+            # Generate strictly PNG image
+            if refresh_images or not product.image or not product.image.name.endswith('.png'):
+                png_file = generate_hardware_png(
                     width=800,
                     height=800,
+                    item_type=p_info["item_type"],
                     title=p_info["name"],
                     subtitle=p_info["key_specs"][:40],
-                    icon_type=p_info["icon"],
                     color_theme=p_info["theme"],
                 )
-                product.image.save(f"prod_{p_info['slug']}.png", img_file, save=False)
+                product.image.save(f"prod_{p_info['slug']}.png", png_file, save=False)
 
             product.save()
             act = "Created" if prod_created else "Updated"
@@ -522,9 +787,9 @@ class Command(BaseCommand):
             self.stdout.write(f"  -> {act} {featured_tag} Product: {product.name} (Rs. {product.price})")
 
         # ----------------------------------------------------------------------
-        # 4. BANNERS (3 Banners)
+        # 4. BANNERS (3 Banners with high-res panoramic PNGs)
         # ----------------------------------------------------------------------
-        self.stdout.write(self.style.HTTP_INFO("\n[4/4] Seeding 3 promotional banners..."))
+        self.stdout.write(self.style.HTTP_INFO("\n[4/4] Seeding 3 promotional banners with high-res PNGs..."))
         banners_data = [
             {
                 "title": "AeroBook Pro 16. Pure Genius.",
@@ -532,8 +797,8 @@ class Command(BaseCommand):
                 "button_text": "Order Now",
                 "button_link": "/product/aerobook-pro-16/",
                 "order": 1,
-                "icon": "laptop",
-                "theme": "blue",
+                "item_type": "banner_laptop",
+                "theme": "space_black",
             },
             {
                 "title": "V-Phone 16 Pro. Titanium.",
@@ -541,8 +806,8 @@ class Command(BaseCommand):
                 "button_text": "Discover",
                 "button_link": "/product/v-phone-16-pro/",
                 "order": 2,
-                "icon": "phone",
-                "theme": "purple",
+                "item_type": "banner_phone",
+                "theme": "titanium",
             },
             {
                 "title": "Pulse SoundMax Pro. Studio Fidelity.",
@@ -550,10 +815,14 @@ class Command(BaseCommand):
                 "button_text": "Experience",
                 "button_link": "/product/pulse-soundmax-pro/",
                 "order": 3,
-                "icon": "audio",
-                "theme": "slate",
+                "item_type": "banner_audio",
+                "theme": "silver",
             },
         ]
+
+        # Deactivate any legacy/empty banners so only the 3 correct banners are active
+        seed_titles = [b["title"] for b in banners_data]
+        Banner.objects.exclude(title__in=seed_titles).update(is_active=False)
 
         for b_info in banners_data:
             b_defaults = {
@@ -568,19 +837,20 @@ class Command(BaseCommand):
                 for k, v in b_defaults.items():
                     setattr(banner, k, v)
 
-            if refresh_images or not banner.image:
-                img_file = generate_placeholder_image(
-                    width=1200,
-                    height=700,
+            # Generate strictly PNG banner
+            if refresh_images or not banner.image or not banner.image.name.endswith('.png'):
+                png_file = generate_hardware_png(
+                    width=1400,
+                    height=800,
+                    item_type=b_info["item_type"],
                     title=b_info["title"],
                     subtitle=b_info["subtitle"][:65],
-                    icon_type=b_info["icon"],
                     color_theme=b_info["theme"],
                 )
-                banner.image.save(f"banner_{b_info['order']}.png", img_file, save=False)
+                banner.image.save(f"banner_{b_info['order']}.png", png_file, save=False)
 
             banner.save()
             act = "Created" if b_created else "Updated"
             self.stdout.write(f"  -> {act} Banner #{banner.order}: {banner.title}")
 
-        self.stdout.write(self.style.SUCCESS("\n[SUCCESS] Seed data completed safely!"))
+        self.stdout.write(self.style.SUCCESS("\n[SUCCESS] Seed data completed safely with 100% correct PNG images!"))
