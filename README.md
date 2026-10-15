@@ -1,5 +1,13 @@
 # Vcart — Modern E-Commerce Platform
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-vcart--task.onrender.com-brightgreen?style=for-the-badge&logo=render)](https://vcart-task.onrender.com/)
+[![Django 5.1](https://img.shields.io/badge/Django-5.1-092E20?style=for-the-badge&logo=django)](https://www.djangoproject.com/)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
+
+> **🚀 Live Website:** [https://vcart-task.onrender.com/](https://vcart-task.onrender.com/)  
+> **📊 Admin Operations Dashboard:** [https://vcart-task.onrender.com/dashboard/](https://vcart-task.onrender.com/dashboard/)  
+> **⚙️ Django Admin Panel:** [https://vcart-task.onrender.com/admin/](https://vcart-task.onrender.com/admin/)  
+
 A high-performance, full-featured e-commerce platform built with **Django 5** and modern **Vanilla CSS**. Vcart combines a customer-facing storefront with a dual-administration system: Django's built-in `/admin/` and a dedicated, staff-only **Store Operations Dashboard** (`/dashboard/`).
 
 ---
