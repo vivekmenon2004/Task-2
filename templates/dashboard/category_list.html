@@ -74,17 +74,19 @@
                         <span style="font-size: 12px; color: var(--text-secondary);">{{ category.description|default:"No description"|truncatechars:60 }}</span>
                     </td>
                     <td>
-                        {% if category.is_active %}
-                        <span class="status-pill active">
-                            <span class="pill-dot green"></span>
-                            Active
-                        </span>
-                        {% else %}
-                        <span class="status-pill disabled">
-                            <span class="pill-dot muted"></span>
-                            Disabled
-                        </span>
-                        {% endif %}
+                        <a href="{% url 'dashboard:category_toggle' category.pk %}" class="toggle-status-link" title="Click to toggle category status">
+                            {% if category.is_active %}
+                            <span class="status-pill active">
+                                <span class="pill-dot green"></span>
+                                Active
+                            </span>
+                            {% else %}
+                            <span class="status-pill disabled">
+                                <span class="pill-dot muted"></span>
+                                Disabled
+                            </span>
+                            {% endif %}
+                        </a>
                     </td>
                     <td style="text-align: right;">
                         <div class="table-actions-row">

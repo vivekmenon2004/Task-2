@@ -12,15 +12,8 @@ def home(request):
     """
     all_banners = list(Banner.objects.filter(is_active=True).order_by('order', '-created_at'))
     
-    if len(all_banners) >= 4:
-        hero_banners = all_banners[:len(all_banners)-2]
-        promo_banners = all_banners[-2:]
-    elif len(all_banners) >= 2:
-        hero_banners = all_banners[:2]
-        promo_banners = all_banners[2:]
-    else:
-        hero_banners = all_banners
-        promo_banners = []
+    hero_banners = all_banners
+    promo_banners = all_banners[3:] if len(all_banners) > 3 else []
 
     # Active categories only
     categories = Category.objects.filter(is_active=True).order_by('name')

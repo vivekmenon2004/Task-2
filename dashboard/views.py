@@ -282,6 +282,17 @@ def category_delete(request, pk):
     })
 
 
+@user_passes_test(is_staff_user, login_url='accounts:login')
+def category_toggle_status(request, pk):
+    """Quickly toggle category active status."""
+    category = get_object_or_404(Category, pk=pk)
+    category.is_active = not category.is_active
+    category.save()
+    status_text = "active" if category.is_active else "disabled"
+    messages.success(request, f'Category "{category.name}" is now {status_text}.')
+    return redirect('dashboard:category_list')
+
+
 # ==============================================================================
 # Banners Management
 # ==============================================================================

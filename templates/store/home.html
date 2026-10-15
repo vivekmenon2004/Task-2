@@ -31,7 +31,12 @@
                         </div>
                         <div class="slide-media">
                             {% if banner.image %}
-                            <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="slide-img" loading="eager">
+                            <div class="slide-showcase-wrapper">
+                                <div class="slide-ambient-aura" aria-hidden="true"></div>
+                                <div class="slide-media-frame">
+                                    <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="slide-img" loading="eager">
+                                </div>
+                            </div>
                             {% else %}
                             <div class="slide-placeholder-media">
                                 <div class="device-mockup">
@@ -149,6 +154,41 @@
                                 View Details
                             </a>
                         </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- 4. PROMOTIONAL SPOTLIGHTS / PROMO BANNERS SECTION -->
+    {% if promo_banners %}
+    <section class="section-promo-banners">
+        <div class="site-container">
+            <div class="section-header">
+                <div class="section-eyebrow">Special Spotlights</div>
+                <h2 class="section-title">More ways to explore extraordinary technology.</h2>
+            </div>
+            <div class="promo-banners-grid">
+                {% for banner in promo_banners %}
+                <div class="promo-banner-card">
+                    <div class="promo-banner-content">
+                        <span class="slide-badge">Special Edition</span>
+                        <h3 class="promo-banner-title">{{ banner.title }}</h3>
+                        {% if banner.subtitle %}
+                        <p class="promo-banner-subtitle">{{ banner.subtitle }}</p>
+                        {% endif %}
+                        <div class="promo-banner-actions">
+                            <a href="{{ banner.button_link|default:'/products/' }}" class="btn-apple-primary">
+                                {{ banner.button_text|default:'Learn more' }} &rarr;
+                            </a>
+                        </div>
+                    </div>
+                    <div class="promo-banner-media">
+                        {% if banner.image %}
+                        <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="promo-banner-img" loading="lazy">
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
